@@ -1067,22 +1067,24 @@ function handleSearch() {
     const resultsDiv = document.getElementById('searchResults');
     if (query === '') { resultsDiv.innerHTML = ''; hideReport(); return; }
 
-    // البحث الدقيق (Exact Match) لضمان الخصوصية التامة
-    const match = students.find(s =>
-        s.name.trim() === query ||
-        s.nationalId.trim() === query
+    const queryLower = query.toLowerCase();
+
+    // البحث: يقبل الاسم أو رقم الهوية أو كليهما
+    // يطابق الطالب إذا احتوى اسمه على النص المدخل أو طابق رقم هويته
+    const matches = students.filter(s =>
+        s.name.toLowerCase().includes(queryLower) ||
+        s.nationalId.includes(query)
     );
 
-    if (!match) {
-        resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default;color:var(--red);">⚠️ لم يتم العثور على طالب. الرجاء كتابة الاسم بالكامل أو رقم الهوية بشكل دقيق.</div>';
-        hideReport(); 
-        return;
+    if (matches.length === 0) {
+        resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default;">لا يوجد طالب مطابق للبحث</div>';
+        hideReport(); return;
     }
 
-    // إذا وجدنا الطالب نعرض تقريره فوراً ونخفي القائمة
-    resultsDiv.innerHTML = '';
-    selectStudent(match.id);
-}}
+    // إظهار النتيجة المطابقة فقط
+    resultsDiv.innerHTML = matches.map(s => '<div class="search-result-item" onclick="selectStudent(\'' + s.id + '\')"><span class="result-name">' + s.name + '</span><span class="result-id">هوية: ' + s.nationalId + ' · ' + getTeacherName(s.teacherId) + '</span></div>').join('');
+    if (matches.length === 1) selectStudent(matches[0].id);
+}
 
 function selectStudent(studentId) {
     currentStudent = students.find(s => s.id === studentId);
