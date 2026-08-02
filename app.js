@@ -686,12 +686,12 @@ async function fetchGithubSha() {
 }
 
 /* ============================================================
-   المزامنة مع GitHub — دمج البيانات (باستخدام API المباشر لتحديث فوري 0 ثانية)
+   المزامنة مع GitHub — دمج البيانات (تحديث فوري سريع)
    ============================================================ */
 async function syncFromGithub() {
     if (isSyncing) return;
     try {
-        // الجلب من الـ API مباشرة عشان يوصل الطلب في نفس اللحظة بدون تأخير السيرفر
+        // الجلب من الـ API مباشرة عشان يوصل الطلب فوراً بدون تأخير
         const response = await fetch(GITHUB_API_URL, {
             headers: { 'Authorization': 'token ' + getGithubToken(), 'Accept': 'application/vnd.github.v3+json' },
             cache: 'no-store'
@@ -772,7 +772,7 @@ async function syncFromGithub() {
                 }
             }
 
-            // معالجة طلبات التسجيل الفورية
+            // === معالجة طلبات التسجيل الفورية ===
             const remotePending = (data.pendingRegistrations && Array.isArray(data.pendingRegistrations)) ? data.pendingRegistrations : [];
             const remoteProcessed = (data.processedRegistrations && Array.isArray(data.processedRegistrations)) ? data.processedRegistrations : [];
             const localProcessedIds = getProcessedRegistrations();
@@ -794,10 +794,10 @@ async function syncFromGithub() {
             if (pendingChanged) {
                 saveStudentsLocal();
                 renderPendingRegistrations();
-                console.log('✓ وصل طلب تسجيل جديد!');
+                console.log('✓ تم تحديث طلبات التسجيل فوراً');
             }
 
-            // الرفع إذا كان هناك اختلاف
+            // الرفع إذا كان هناك اختلاف محلي
             const localOnlyStudents = students.filter(s => !remoteStudentIds.includes(s.id));
             const localOnlyDeleted = localDeletedIds.filter(id => !remoteDeletedIds.includes(id));
             const remotePendingIds = remotePending.map(function (p) { return p.id; });
@@ -1056,34 +1056,30 @@ function handleSearchKey(event) {
 }
 
 /* ============================================================
-   بحث أولياء الأمور — خصوصية تامة
-   - لا تظهر اقتراحات تلقائية (Autocomplete) أثناء الكتابة
-   - البحث يعمل فقط عند الضغط على زر "بحث" أو Enter
-   - يقبل: الاسم، أو رقم الهوية، أو كلاهما معاً
-   - النتيجة تقتصر على الطالب المطابق فقط دون كشف البقية
+   بحث أولياء الأمور — خصوصية تامة (تطابق تام)
+   - لا تظهر اقتراحات أو أسماء طلاب آخرين نهائياً.
+   - البحث يتطلب كتابة الاسم كاملاً وبشكل مطابق، أو كتابة رقم الهوية كاملاً.
    ============================================================ */
 function handleSearch() {
     const query = document.getElementById('searchInput').value.trim();
     const resultsDiv = document.getElementById('searchResults');
     if (query === '') { resultsDiv.innerHTML = ''; hideReport(); return; }
 
-    const queryLower = query.toLowerCase();
-
-    // البحث: يقبل الاسم أو رقم الهوية أو كليهما
-    // يطابق الطالب إذا احتوى اسمه على النص المدخل أو طابق رقم هويته
-    const matches = students.filter(s =>
-        s.name.toLowerCase().includes(queryLower) ||
-        s.nationalId.includes(query)
+    // البحث الدقيق (Exact Match) لضمان الخصوصية التامة
+    const match = students.find(s =>
+        s.name.trim() === query ||
+        s.nationalId.trim() === query
     );
 
-    if (matches.length === 0) {
-        resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default;">لا يوجد طالب مطابق للبحث</div>';
-        hideReport(); return;
+    if (!match) {
+        resultsDiv.innerHTML = '<div class="search-result-item" style="cursor:default;color:var(--red);">⚠️ لم يتم العثور على طالب. الرجاء كتابة الاسم بالكامل أو رقم الهوية بشكل دقيق.</div>';
+        hideReport(); 
+        return;
     }
 
-    // إظهار النتيجة المطابقة فقط
-    resultsDiv.innerHTML = matches.map(s => '<div class="search-result-item" onclick="selectStudent(\'' + s.id + '\')"><span class="result-name">' + s.name + '</span><span class="result-id">هوية: ' + s.nationalId + ' · ' + getTeacherName(s.teacherId) + '</span></div>').join('');
-    if (matches.length === 1) selectStudent(matches[0].id);
+    // إذا وجدنا الطالب نعرض تقريره فوراً ونخفي القائمة
+    resultsDiv.innerHTML = '';
+    selectStudent(match.id);
 }
 
 function selectStudent(studentId) {
@@ -1647,7 +1643,6 @@ function renderStudentsList() {
     }).join('');
 }
 
-// حفظ قائمة الطلاب المحذوفين (للمزامنة — حتى ينحذفوا من جميع الأجهزة)
 function saveDeletedStudent(studentId) {
     let deleted = [];
     try {
@@ -1660,7 +1655,6 @@ function saveDeletedStudent(studentId) {
     }
 }
 
-// قراءة قائمة الطلاب المحذوفين
 function getDeletedStudents() {
     try {
         const stored = localStorage.getItem(DELETED_STUDENTS_KEY);
@@ -1674,7 +1668,6 @@ function deleteStudent(studentId) {
     if (!confirm('⚠️ هل أنت متأكد من حذف الطالب "' + student.name + '"؟\n\nسيتم حذف جميع سجلاته (' + student.history.length + ' متابعة) نهائياً.\nلا يمكن التراجع عن هذا الإجراء.')) return;
     const studentName = student.name;
     students = students.filter(s => s.id !== studentId);
-    // تسجيل الحذف للمزامنة (حتى ينحذف من جميع الأجهزة)
     saveDeletedStudent(studentId);
     saveStudents();
     showToast('✓ تم حذف الطالب "' + studentName + '" بنجاح', 'success');
@@ -1697,13 +1690,9 @@ function showToast(message, type) {
     setTimeout(() => { toast.classList.remove('show'); }, 3500);
 }
 
-/* ============================================================
-   تعبئة قائمة المعلمين في نموذج إضافة طالب جديد (ديناميكي)
-   ============================================================ */
 function populateNewStudentTeacherSelect() {
     const select = document.getElementById('newStudentTeacher');
     if (!select) return;
-    // إذا كان المستخدم معلماً، نثبت حلقته ولا نعرض بقية المعلمين
     const user = getCurrentUser();
     if (user && user.role === 'teacher' && user.teacherId) {
         select.innerHTML = '<option value="' + user.teacherId + '">' + getTeacherName(user.teacherId) + '</option>';
@@ -1715,12 +1704,8 @@ function populateNewStudentTeacherSelect() {
     }
 }
 
-/* ============================================================
-   لوحة المشرف العام (Admin Dashboard)
-   ============================================================ */
 function renderAdminDashboard() {
     renderPendingRegistrations();
-    // الإحصائيات العليا
     const totalStudents = students.length;
     const totalTeachers = teachers.length;
     let excellentCount = 0;
@@ -1739,7 +1724,6 @@ function renderAdminDashboard() {
     if (elExcellent) elExcellent.textContent = excellentCount;
     if (elJuz) elJuz.textContent = totalJuz;
 
-    // جداول الإدارة
     renderAdminTeachersTable();
     renderAdminStudentsTable();
     populateAdminStudentFilter();
@@ -1836,7 +1820,6 @@ function renderAdminStudentsTable() {
     }
     tbody.innerHTML = filtered.map((s, idx) => {
         const juzCount = getCompletedJuz(s).length;
-        // قائمة منسدلة لنقل الطالب إلى حلقة أخرى
         const transferOptions = teachers.map(t =>
             '<option value="' + t.id + '"' + (t.id === s.teacherId ? ' selected' : '') + '>' + t.name + '</option>'
         ).join('');
@@ -1885,14 +1868,10 @@ function exportData() {
     showToast('✓ تم تصدير البيانات بنجاح', 'success');
 }
 
-/* ============================================================
-   أزرار الإنجاز الذكية (Smart Completion Buttons)
-   ============================================================ */
 function bulkAttendance() {
     const filtered = getFilteredStudents();
     if (filtered.length === 0) { showToast('⚠️ لا يوجد طلاب في الحلقة', 'error'); return; }
     const today = new Date().toISOString().split('T')[0];
-    // التحقق من عدم وجود تسجيل حضور مسبق لنفس اليوم
     const alreadyMarked = filtered.filter(s => {
         const sorted = [...(s.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
         const latest = sorted[0];
@@ -1907,7 +1886,7 @@ function bulkAttendance() {
     filtered.forEach(s => {
         const sorted = [...(s.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
         const latest = sorted[0];
-        if (latest && latest.date === today && latest.attendance === 'حاضر') return; // تخطى المسجل مسبقاً
+        if (latest && latest.date === today && latest.attendance === 'حاضر') return;
         if (!s.history) s.history = [];
         s.history.push({
             date: today,
@@ -1951,7 +1930,6 @@ function bulkExcellentEval() {
     const student = students.find(s => s.id === studentId);
     if (!student) return;
     const today = new Date().toISOString().split('T')[0];
-    // البحث عن متابعة اليوم وتحديث تقييمها
     const sorted = [...(student.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
     const latest = sorted[0];
     if (latest && latest.date === today) {
@@ -1959,7 +1937,6 @@ function bulkExcellentEval() {
         saveStudents();
         showToast('⭐ تم تحديث تقييم اليوم إلى "ممتاز" للطالب "' + student.name + '"', 'success');
     } else {
-        // إنشاء متابعة جديدة بتقييم ممتاز
         if (!student.history) student.history = [];
         student.history.push({
             date: today,
@@ -1977,12 +1954,6 @@ function bulkExcellentEval() {
     renderStatsDashboard();
 }
 
-/* ============================================================
-   محرك التنبؤ الذكي للإنجاز (Smart Prediction Engine)
-   يعرض: مؤشرات تفصيلية، مقارنة قبل/بعد، توقع ذكي للمستقبل
-   ============================================================ */
-
-// حساب إحصائيات الطالب التفصيلية مع التنبؤ الذكي
 function getStudentAchievementStats(student) {
     const history = student.history || [];
     const completedJuz = getCompletedJuz(student);
@@ -1994,7 +1965,6 @@ function getStudentAchievementStats(student) {
     let firstSessionAyahs = 0;
     let lastSessionAyahs = 0;
 
-    // حساب الآيات المحفوظة من سجل المتابعات
     history.forEach(function(h) {
         if (h.memorization && h.memorization !== '—') {
             var surahMatch = h.memorization.match(/^(\d+)\./);
@@ -2018,10 +1988,8 @@ function getStudentAchievementStats(student) {
     var juzProgress = Math.round((juzCount / 30) * 100);
     var ayahProgress = Math.min(100, Math.round((totalAyahs / totalAyahsQuran) * 100));
 
-    // === محرك التنبؤ الذكي ===
     var prediction = null;
     if (history.length > 0) {
-        // ترتيب السجل زمنياً
         var sortedHistory = history.slice().sort(function(a, b) {
             return new Date(a.date) - new Date(b.date);
         });
@@ -2030,39 +1998,26 @@ function getStudentAchievementStats(student) {
         var lastDate = new Date(sortedHistory[sortedHistory.length - 1].date);
         var daysDiff = Math.max(1, Math.round((lastDate - firstDate) / (1000 * 60 * 60 * 24)));
 
-        // معدل الحفظ (آيات في اليوم)
         var ayahsPerDay = totalAyahs / daysDiff;
-
-        // الآيات المتبقية لختم القرآن
         var remainingAyahs = totalAyahsQuran - totalAyahs;
-
-        // الأيام المتوقعة لختم القرآن
         var daysToComplete = ayahsPerDay > 0 ? Math.ceil(remainingAyahs / ayahsPerDay) : 0;
-
-        // الآيات المتبقية لإكمال الجزء الحالي
         var currentJuzPosition = totalAyahs % ayahsPerJuz;
         var remainingInJuz = ayahsPerJuz - currentJuzPosition;
         var daysToNextJuz = ayahsPerDay > 0 ? Math.ceil(remainingInJuz / ayahsPerDay) : 0;
-
-        // المعدل الأسبوعي
         var weeklyRate = Math.round(ayahsPerDay * 7);
 
-        // الآيات في أول جلسة vs آخر جلسة (مقارنة قبل/بعد)
         var firstRec = sortedHistory[0];
         var lastRec = sortedHistory[sortedHistory.length - 1];
         firstSessionAyahs = extractAyahCount(firstRec.memorization);
         lastSessionAyahs = extractAyahCount(lastRec.memorization);
 
-        // حساب التطور (نسبة التحسن)
         var improvementRate = firstSessionAyahs > 0 ?
             Math.round(((lastSessionAyahs - firstSessionAyahs) / firstSessionAyahs) * 100) : 0;
 
-        // توقع تاريخ الختمة
         var completionDate = new Date();
         completionDate.setDate(completionDate.getDate() + daysToComplete);
         var completionDateStr = formatDate(completionDate.toISOString().split('T')[0]);
 
-        // تاريخ إكمال الجزء التالي
         var nextJuzDate = new Date();
         nextJuzDate.setDate(nextJuzDate.getDate() + daysToNextJuz);
         var nextJuzDateStr = formatDate(nextJuzDate.toISOString().split('T')[0]);
@@ -2097,7 +2052,6 @@ function getStudentAchievementStats(student) {
     };
 }
 
-// استخراج عدد الآيات من نص المتابعة
 function extractAyahCount(memText) {
     if (!memText || memText === '—') return 0;
     var fromMatch = memText.match(/من آية (\d+)/);
@@ -2113,12 +2067,10 @@ function extractAyahCount(memText) {
     return 0;
 }
 
-// عرض مؤشرات الإنجاز والتنبؤ الذكي كـ HTML
 function renderAchievementIndicators(student) {
     var stats = getStudentAchievementStats(student);
     var html = '<div class="student-achievement-indicators">';
 
-    // المؤشرات التفصيلية الحالية
     html += '<span class="achievement-chip chip-ayahs" title="الآيات المحفوظة">آيات: ' + stats.ayahs + '</span>';
     html += '<span class="achievement-chip chip-surahs" title="السور التي حُفظت">سور: ' + stats.surahs + '</span>';
     html += '<span class="achievement-chip chip-juz" title="الأجزاء المكتملة">أجزاء: ' + stats.juz + '/30</span>';
@@ -2127,13 +2079,11 @@ function renderAchievementIndicators(student) {
         stats.juzProgress + '%' +
     '</span>';
 
-    // التنبؤ الذكي (إذا توفرت بيانات كافية)
     if (stats.prediction) {
         var p = stats.prediction;
-        html += '</div>'; // إغلاق المؤشرات
+        html += '</div>';
         html += '<div class="smart-prediction-box">';
 
-        // مقارنة قبل/بعد
         html += '<div class="prediction-comparison">';
         html += '<span class="prediction-label">التطور:</span>';
         html += '<span class="prediction-before">البداية: ' + p.firstSessionAyahs + ' آية/جلسة</span>';
@@ -2146,7 +2096,6 @@ function renderAchievementIndicators(student) {
         }
         html += '</div>';
 
-        // التوقع الذكي للمستقبل
         html += '<div class="prediction-forecast">';
         html += '<span class="prediction-rate">المعدل: ' + p.ayahsPerDay + ' آية/يوم (' + p.weeklyRate + '/أسبوع)</span>';
         if (p.daysToNextJuz > 0 && p.nextJuzNumber <= 30) {
@@ -2159,14 +2108,12 @@ function renderAchievementIndicators(student) {
 
         html += '</div>';
     } else {
-        html += '</div>'; // إغلاق المؤشرات فقط
+        html += '</div>';
     }
 
     return html;
 }
 
-// التحقق من إصدار البيانات — إذا تغير الإصدار، نُفرغ الذاكرة المحلية
-// (يُستخدم عند حذف الأسماء الافتراضية لضمان عدم عودتها)
 function checkDataVersion() {
     const storedVersion = localStorage.getItem(DATA_VERSION_KEY);
     if (storedVersion !== CURRENT_DATA_VERSION) {
@@ -2178,10 +2125,7 @@ function checkDataVersion() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 0) قراءة التوكن من الرابط (إن وُجد) — بصمت بدون تنبيه
     readTokenFromUrl();
-
-    // 0.5) التحقق من إصدار البيانات (لتفريغ الأسماء الافتراضية القديمة)
     checkDataVersion();
 
     loadStudents();
@@ -2192,8 +2136,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('emptyState').style.display = 'block';
     updateLiveClock();
     setInterval(updateLiveClock, 1000);
-    // مزامنة تلقائية في الخلفية كل 10 ثوانٍ (Real-time sync)
     setInterval(syncFromGithub, 10000);
-    // تحديث واجهة المصادقة عند تحميل الصفحة
     updateAuthUI();
 });
