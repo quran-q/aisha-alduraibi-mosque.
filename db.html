@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قاعدة بيانات الأسماء - جامع عائشة بنت عبدالعزيز الدريبي</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .db-container { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+        .db-header-card { border-top: 4px solid var(--gold); text-align: center; }
+        .db-header-card .card-title { font-size: 1.5rem; }
+        .db-header-card .card-desc { font-size: 1rem; }
+        .add-name-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        .add-name-row input {
+            flex: 1; min-width: 200px; padding: 0.85rem 1rem; border: 2px solid var(--gray-light);
+            border-radius: var(--radius-sm); font-family: inherit; font-size: 1rem; transition: var(--transition); background: var(--off-white);
+        }
+        .add-name-row input:focus { outline: none; border-color: var(--gold); background: var(--white); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15); }
+        .names-counter-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.2rem;
+            background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-light) 100%);
+            color: var(--gold-light); border-radius: 50px; font-weight: 700; font-size: 1rem;
+        }
+        .names-counter-badge .count { font-size: 1.3rem; color: var(--white); }
+        .db-table { width: 100%; border-collapse: collapse; min-width: 400px; }
+        .db-table thead { background: var(--navy-dark); }
+        .db-table th { padding: 0.85rem 1rem; text-align: right; color: var(--white); font-weight: 600; font-size: 0.9rem; white-space: nowrap; }
+        .db-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--gray-light); font-size: 0.95rem; color: var(--gray-dark); }
+        .db-table tbody tr { transition: var(--transition); }
+        .db-table tbody tr:hover { background: var(--off-white); }
+        .db-table tbody tr:nth-child(even) { background: rgba(232, 234, 242, 0.3); }
+        .db-table tbody tr:nth-child(even):hover { background: var(--gray-light); }
+        .db-empty { text-align: center; padding: 3rem 1rem; color: var(--gray); }
+        .db-empty .empty-icon { font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.5; }
+        .db-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .db-search { flex: 1; min-width: 200px; max-width: 300px; padding: 0.7rem 1rem; border: 2px solid var(--gray-light); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.95rem; background: var(--off-white); }
+        .db-search:focus { outline: none; border-color: var(--gold); background: var(--white); }
+        .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--navy-dark); text-decoration: none; font-weight: 600; font-size: 0.9rem; padding: 0.5rem 1rem; border: 2px solid var(--navy-dark); border-radius: var(--radius-sm); transition: var(--transition); }
+        .back-link:hover { background: var(--navy-dark); color: var(--white); }
+    </style>
+</head>
+<body>
+    <!-- ===== Live Clock Bar ===== -->
+    <div class="live-clock-bar">
+        <div id="liveClock" class="live-clock">🕌 —</div>
+    </div>
+
+    <!-- ===== Header ===== -->
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="logo-wrap">
+                <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#d4af37"/>
+                            <stop offset="100%" stop-color="#b8941f"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M50 8 C40 8 32 16 32 26 L32 40 L68 40 L68 26 C68 16 60 8 50 8 Z" fill="url(#goldGrad)"/>
+                    <circle cx="50" cy="6" r="3" fill="url(#goldGrad)"/>
+                    <rect x="30" y="40" width="40" height="45" fill="#0a1f44"/>
+                    <rect x="20" y="30" width="6" height="55" fill="#0a1f44"/>
+                    <rect x="74" y="30" width="6" height="55" fill="#0a1f44"/>
+                    <circle cx="23" cy="28" r="4" fill="url(#goldGrad)"/>
+                    <circle cx="77" cy="28" r="4" fill="url(#goldGrad)"/>
+                    <path d="M44 85 L44 62 C44 56 47 53 50 53 C53 53 56 56 56 62 L56 85 Z" fill="url(#goldGrad)"/>
+                    <rect x="15" y="85" width="70" height="6" rx="2" fill="#0a1f44"/>
+                </svg>
+            </div>
+            <div class="title-wrap">
+                <h1>قاعدة بيانات الأسماء</h1>
+                <p class="subtitle">جامع عائشة بنت عبدالعزيز الدريبي</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="db-container">
+            <!-- Back Link + Sync Button -->
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+                <a href="index.html" class="back-link">← العودة للنظام الرئيسي</a>
+                <button class="back-link" onclick="showSyncLinkModal()" style="cursor:pointer;background:var(--gold);color:var(--white);border-color:var(--gold);">
+                    🔗 ربط المزامنة بين الأجهزة
+                </button>
+            </div>
+
+            <!-- Add Name Card -->
+            <div class="card db-header-card">
+                <h2 class="card-title">📝 إضافة اسم جديد</h2>
+                <p class="card-desc">أدخل الاسم واضغط "إضافة" للحفظ</p>
+                <div class="add-name-row">
+                    <input type="text" id="nameInput" placeholder="اكتب الاسم هنا..." onkeydown="handleNameKey(event)" autofocus>
+                    <button class="btn btn-gold" onclick="addName()">➕ إضافة</button>
+                </div>
+            </div>
+
+            <!-- Names List Card -->
+            <div class="card">
+                <div class="db-actions">
+                    <h2 class="card-title">👥 قائمة الأسماء</h2>
+                    <div class="names-counter-badge">
+                        <span>العدد:</span>
+                        <span class="count" id="namesCounter">0</span>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div style="margin: 1rem 0;">
+                    <input type="text" id="searchInput" class="db-search" placeholder="🔍 بحث في الأسماء..." oninput="searchNames()">
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrap">
+                    <table class="db-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الاسم</th>
+                                <th>إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="namesTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="db-empty">
+                    <div class="empty-icon">📋</div>
+                    <p>لا توجد أسماء محفوظة بعد</p>
+                    <p style="font-size:0.85rem;margin-top:0.5rem;">أضف اسمك الأول من الأعلى 👆</p>
+                </div>
+
+                <!-- Clear All -->
+                <div style="margin-top:1.5rem;text-align:center;">
+                    <button class="btn btn-outline" onclick="clearAllNames()">🗑️ حذف جميع الأسماء</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ===== Footer ===== -->
+    <footer class="site-footer">
+        <p>© قاعدة بيانات الأسماء - جامع عائشة بنت عبدالعزيز الدريبي</p>
+    </footer>
+
+    <!-- Token Modal (لإدخال توكن GitHub للمزامنة بين الأجهزة) -->
+    <div id="tokenModal" class="modal-overlay" onclick="if(event.target===this)closeTokenModal()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔐 ربط المزامنة بين الأجهزة</h2>
+                <button class="modal-close" onclick="closeTokenModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom:1rem;color:var(--gray);line-height:1.8;">
+                    لكي تظهر الأسماء على جميع الأجهزة (الجوال واللابتوب)، أدخل توكن GitHub مرة واحدة فقط على كل جهاز.<br>
+                    سيُحفظ التوكن في متصفحك ولن يُشارك مع أحد.
+                </p>
+                <div class="form-group">
+                    <label for="tokenInput">GitHub Token</label>
+                    <input type="password" id="tokenInput" placeholder="ghp_..." style="direction:ltr;text-align:left;">
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-gold" onclick="saveTokenFromModal()">💾 حفظ التوكن</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Live Clock -->
+    <script>
+        function updateLiveClock() {
+            const now = new Date();
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+            const dayName = days[now.getDay()];
+            let hijriDate = '—';
+            try {
+                hijriDate = now.toLocaleDateString('ar-SA-u-ca-islamic-umalqura', { year: 'numeric', month: 'long', day: 'numeric' });
+            } catch (e) {
+                hijriDate = now.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' });
+            }
+            const time = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            const clockEl = document.getElementById('liveClock');
+            if (clockEl) clockEl.innerHTML = '🕌 ' + dayName + ' · ' + hijriDate + ' · 🕐 ' + time;
+        }
+        updateLiveClock();
+        setInterval(updateLiveClock, 1000);
+    </script>
+
+    <script src="db.js"></script>
+</body>
+</html>
