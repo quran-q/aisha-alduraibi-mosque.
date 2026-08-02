@@ -2182,7 +2182,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLiveClock();
     setInterval(updateLiveClock, 1000);
     // مزامنة تلقائية في الخلفية كل 10 ثوانٍ (Real-time sync)
-    setInterval(syncFromGithub, 10000);
-    // تحديث واجهة المصادقة عند تحميل الصفحة
+setInterval(syncFromGithub, 10000);    // تحديث واجهة المصادقة عند تحميل الصفحة
     updateAuthUI();
 });
