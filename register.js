@@ -75,13 +75,16 @@ async function sendRegistrationToGithub(registration, isRetry) {
         if (!shaResponse.ok) throw new Error('تعذّر جلب البيانات الحالية');
         const shaData = await shaResponse.json();
         const currentSha = shaData.sha;
-        const currentContent = JSON.parse(decodeURIComponent(escape(atob(shaData.content.replace(/\n/g, '')))));
+        
+        const jsonString = new TextDecoder().decode(Uint8Array.from(atob(shaData.content.replace(/\n/g, '')), c => c.charCodeAt(0)));
+        const currentContent = JSON.parse(jsonString);
 
         const pending = Array.isArray(currentContent.pendingRegistrations) ? currentContent.pendingRegistrations : [];
         pending.push(registration);
         currentContent.pendingRegistrations = pending;
 
-        const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(currentContent, null, 2))));
+        const encodedContent = btoa(String.fromCharCode.apply(null, new TextEncoder().encode(JSON.stringify(currentContent, null, 2))));
+        
         const putResponse = await fetch(GITHUB_API_URL, {
             method: 'PUT',
             headers: {
@@ -91,7 +94,7 @@ async function sendRegistrationToGithub(registration, isRetry) {
             },
             body: JSON.stringify({
                 message: 'طلب تسجيل جديد: ' + registration.name,
-                content: newContent,
+                content: encodedContent,
                 sha: currentSha,
                 branch: GITHUB_BRANCH
             })
@@ -99,7 +102,6 @@ async function sendRegistrationToGithub(registration, isRetry) {
 
         if (putResponse.ok) return true;
 
-        // في حال تعارض الإصدار (شخص آخر حفظ بالتزامن)، أعد المحاولة مرة واحدة فقط
         if (putResponse.status === 409 && !isRetry) {
             return await sendRegistrationToGithub(registration, true);
         }
@@ -108,7 +110,7 @@ async function sendRegistrationToGithub(registration, isRetry) {
         console.error('خطأ في إرسال طلب التسجيل:', e.message);
         return false;
     }
-}
+}}
 
 function showSuccessState() {
     const formCard = document.getElementById('registerFormCard');
