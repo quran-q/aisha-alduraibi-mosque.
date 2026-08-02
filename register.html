@@ -14,7 +14,7 @@
         .register-header-card .card-title { font-size: 1.4rem; }
         .register-header-card .card-desc { font-size: 0.95rem; }
         .success-card { text-align: center; padding: 2.5rem 1.5rem; }
-        .success-icon { font-size: 3.5rem; margin-bottom: 1rem; color: var(--gold); }
+        .success-icon { font-size: 3.5rem; margin-bottom: 1rem; }
         .success-card h2 { color: var(--navy-dark); margin-bottom: 0.6rem; font-size: 1.3rem; }
         .success-card p { color: var(--gray); line-height: 1.8; }
         .required-star { color: var(--red); }
@@ -23,7 +23,7 @@
 <body>
     <!-- ===== Live Clock Bar ===== -->
     <div class="live-clock-bar">
-        <div id="liveClock" class="live-clock">—</div>
+        <div id="liveClock" class="live-clock">🕌 —</div>
     </div>
 
     <!-- ===== Header ===== -->
@@ -60,7 +60,7 @@
 
             <!-- Intro Card -->
             <div class="card register-header-card">
-                <h2 class="card-title">نموذج تسجيل طالب جديد</h2>
+                <h2 class="card-title">📝 نموذج تسجيل طالب جديد</h2>
                 <p class="card-desc">
                     عبّئ البيانات التالية لتسجيل الطالب في حلقات التحفيظ.<br>
                     سيُراجع المشرف الطلب ويتم التواصل معكم بعد القبول.
@@ -69,7 +69,7 @@
 
             <!-- Registration Form Card -->
             <div class="card" id="registerFormCard">
-                <form id="registrationForm" onsubmit="submitRegistration(event)">
+                <form id="registerForm" onsubmit="submitRegistration(event)">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="regName">اسم الطالب <span class="required-star">*</span></label>
@@ -92,8 +92,8 @@
                             <input type="date" id="regBirthDate" required style="direction:ltr;text-align:left;">
                         </div>
                         <div class="form-group">
-                            <label for="regEducation">المستوى التعليمي <span class="required-star">*</span></label>
-                            <select id="regEducation" required>
+                            <label for="regEducationLevel">المستوى التعليمي <span class="required-star">*</span></label>
+                            <select id="regEducationLevel" required>
                                 <option value="">— اختر المستوى —</option>
                                 <option value="ابتدائي">ابتدائي</option>
                                 <option value="متوسط">متوسط</option>
@@ -105,32 +105,22 @@
                             <label for="regNationality">الجنسية <span class="required-star">*</span></label>
                             <input type="text" id="regNationality" placeholder="مثال: سعودي" required autocomplete="off">
                         </div>
-                        
-                        <!-- مسار التسجيل (الجديد) -->
-                        <div class="form-group form-group-full">
-                            <label for="regTrack">مسار التسجيل <span class="required-star">*</span></label>
-                            <select id="regTrack" required>
-                                <option value="أساسي">مسار أساسي (مستمر طوال العام)</option>
-                                <option value="صيفي">دورة صيفية مكثفة</option>
-                            </select>
-                        </div>
-
                     </div>
                     <div class="form-actions" style="margin-top:1.5rem;">
-                        <button type="submit" id="submitBtn" class="btn btn-gold" style="width:100%;">إرسال طلب التسجيل</button>
+                        <button type="submit" id="submitBtn" class="btn btn-gold" style="width:100%;">📨 إرسال طلب التسجيل</button>
                     </div>
                 </form>
             </div>
 
             <!-- Success Card (hidden by default) -->
-            <div class="card success-card" id="successMessage" style="display:none;">
-                <div class="success-icon">✓</div>
+            <div class="card success-card" id="registerSuccessCard" style="display:none;">
+                <div class="success-icon">✅</div>
                 <h2>تم إرسال طلب التسجيل بنجاح</h2>
                 <p>
                     سيقوم المشرف بمراجعة الطلب، وفور القبول سيُضاف الطالب إلى إحدى الحلقات.<br>
                     سيتم التواصل معكم على رقم جوال ولي الأمر عند الحاجة.
                 </p>
-                <button class="btn btn-outline" style="margin-top:1.5rem;" onclick="location.reload()">تسجيل طالب آخر</button>
+                <button class="btn btn-outline" style="margin-top:1.5rem;" onclick="resetRegistrationForm()">تسجيل طالب آخر</button>
             </div>
 
         </div>
@@ -158,12 +148,12 @@
             }
             const time = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
             const clockEl = document.getElementById('liveClock');
-            if (clockEl) clockEl.innerHTML = dayName + ' · ' + hijriDate + ' · ' + time;
+            if (clockEl) clockEl.innerHTML = '🕌 ' + dayName + ' · ' + hijriDate + ' · 🕐 ' + time;
         }
         updateLiveClock();
         setInterval(updateLiveClock, 1000);
     </script>
 
-    <script src="register.js?v=2"></script>
+    <script src="register.js"></script>
 </body>
 </html>

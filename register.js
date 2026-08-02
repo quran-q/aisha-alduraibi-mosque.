@@ -20,7 +20,7 @@ function setFormEnabled(enabled) {
     const btn = document.getElementById('submitBtn');
     if (btn) {
         btn.disabled = !enabled;
-        btn.textContent = enabled ? 'إرسال طلب التسجيل' : 'جارِ الإرسال...';
+        btn.textContent = enabled ? '📨 إرسال طلب التسجيل' : '⏳ جارِ الإرسال...';
     }
 }
 
@@ -33,15 +33,11 @@ async function submitRegistration(event) {
     const fatherPhone = document.getElementById('regFatherPhone').value.trim();
     const studentPhone = document.getElementById('regStudentPhone').value.trim();
     const birthDate = document.getElementById('regBirthDate').value;
-    const educationLevel = document.getElementById('regEducation').value;
+    const educationLevel = document.getElementById('regEducationLevel').value;
     const nationality = document.getElementById('regNationality').value.trim();
-    
-    // سحب مسار التسجيل (صيفي أو أساسي)
-    const trackElement = document.getElementById('regTrack');
-    const track = trackElement ? trackElement.value : 'أساسي';
 
     if (!name || !nationalId || !fatherPhone || !birthDate || !educationLevel || !nationality) {
-        showRegToast('الرجاء تعبئة جميع الحقول المطلوبة', 'error');
+        showRegToast('⚠️ الرجاء تعبئة جميع الحقول المطلوبة', 'error');
         return;
     }
 
@@ -54,7 +50,6 @@ async function submitRegistration(event) {
         birthDate: birthDate,
         educationLevel: educationLevel,
         nationality: nationality,
-        track: track, // إضافة المسار للطلب
         submittedAt: new Date().toISOString(),
         status: 'pending'
     };
@@ -63,16 +58,14 @@ async function submitRegistration(event) {
     const ok = await sendRegistrationToGithub(registration, false);
     setFormEnabled(true);
 
-    if (ok === true) {
+    if (ok) {
         showSuccessState();
-    } else if (ok === 'duplicate') {
-        showRegToast('رقم الهوية مسجّل مسبقاً في النظام!', 'error');
     } else {
-        showRegToast('تعذّر إرسال الطلب حالياً، تأكد من اتصالك بالإنترنت وحاول مرة أخرى', 'error');
+        showRegToast('⚠️ تعذّر إرسال الطلب حالياً، تأكد من اتصالك بالإنترنت وحاول مرة أخرى', 'error');
     }
 }
 
-// رفع الطلب إلى ملف data.json المشترك على GitHub
+// رفع الطلب إلى ملف data.json المشترك على GitHub بطريقة آمنة تماماً
 async function sendRegistrationToGithub(registration, isRetry) {
     try {
         const shaResponse = await fetch(GITHUB_API_URL, {
@@ -90,14 +83,6 @@ async function sendRegistrationToGithub(registration, isRetry) {
             currentContent = JSON.parse(jsonText);
         } catch (err) {
             currentContent = { teachers: [], students: [], pendingRegistrations: [] };
-        }
-
-        // التحقق من عدم تسجيل الهوية مسبقاً (أساسي أو معلق)
-        const isStudentExist = (currentContent.students || []).some(s => s.nationalId === registration.nationalId);
-        const isPendingExist = (currentContent.pendingRegistrations || []).some(p => p.nationalId === registration.nationalId);
-
-        if (isStudentExist || isPendingExist) {
-            return 'duplicate'; // إرجاع حالة التكرار
         }
 
         const pending = Array.isArray(currentContent.pendingRegistrations) ? currentContent.pendingRegistrations : [];
@@ -120,7 +105,7 @@ async function sendRegistrationToGithub(registration, isRetry) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: 'طلب تسجيل جديد: ' + registration.name + ' (' + registration.track + ')',
+                message: 'طلب تسجيل جديد: ' + registration.name,
                 content: encodedContent,
                 sha: currentSha,
                 branch: GITHUB_BRANCH
@@ -142,9 +127,19 @@ async function sendRegistrationToGithub(registration, isRetry) {
 
 function showSuccessState() {
     const formCard = document.getElementById('registerFormCard');
-    const successCard = document.getElementById('successMessage'); // مربوط بملف الـ HTML
+    const successCard = document.getElementById('registerSuccessCard');
     if (formCard) formCard.style.display = 'none';
     if (successCard) successCard.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetRegistrationForm() {
+    const form = document.getElementById('registerForm');
+    const formCard = document.getElementById('registerFormCard');
+    const successCard = document.getElementById('registerSuccessCard');
+    if (form) form.reset();
+    if (formCard) formCard.style.display = 'block';
+    if (successCard) successCard.style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
