@@ -686,26 +686,39 @@ async function fetchGithubSha() {
 }
 
 /* ============================================================
-   المزامنة مع GitHub — دمج البيانات (وليس استبدالها)
-   نحافظ على الطلاب المحليين + نأخذ الأحدث لكل طالب
+   المزامنة مع GitHub — دمج البيانات (باستخدام API المباشر لتحديث فوري 0 ثانية)
    ============================================================ */
 async function syncFromGithub() {
     if (isSyncing) return;
     try {
-        const cacheBuster = '?t=' + Date.now();
-        const response = await fetch(GITHUB_DATA_URL + cacheBuster, { cache: 'no-store' });
+        // الجلب من الـ API مباشرة عشان يوصل الطلب في نفس اللحظة بدون تأخير السيرفر
+        const response = await fetch(GITHUB_API_URL, {
+            headers: { 'Authorization': 'token ' + getGithubToken(), 'Accept': 'application/vnd.github.v3+json' },
+            cache: 'no-store'
+        });
+        
         if (response.ok) {
-            const data = await response.json();
+            const shaData = await response.json();
+            githubDataSha = shaData.sha;
+            
+            // فك التشفير الآمن للبيانات
+            let data = {};
+            try {
+                const decodedBytes = Uint8Array.from(atob(shaData.content.replace(/\s/g, '')), c => c.charCodeAt(0));
+                const jsonText = new TextDecoder().decode(decodedBytes);
+                data = JSON.parse(jsonText);
+            } catch (err) {
+                console.error('خطأ في فك تشفير البيانات من API');
+                return;
+            }
+
             const remoteStudents = (data.students && Array.isArray(data.students)) ? data.students : [];
             const remoteStudentIds = remoteStudents.map(s => s.id);
             const localDeletedIds = getDeletedStudents();
             let changed = false;
             const mergedStudents = [];
 
-            // 1) الطلاب الموجودون على GitHub: نأخذ النسخة الأحدث (أكثر سجلات)
-            // لكن نستثني الطلاب المحذوفين محلياً (للمزامنة)
             remoteStudents.forEach(remoteStudent => {
-                // إذا كان الطالب محذوفاً محلياً، لا نسترجعه
                 if (localDeletedIds.includes(remoteStudent.id)) return;
                 const localStudent = students.find(s => s.id === remoteStudent.id);
                 if (localStudent) {
@@ -725,21 +738,18 @@ async function syncFromGithub() {
                 }
             });
 
-            // 2) الطلاب المحليون غير الموجودون على GitHub (نحافظ عليهم)
             students.forEach(localStudent => {
                 if (!remoteStudentIds.includes(localStudent.id)) {
                     mergedStudents.push(localStudent);
                 }
             });
 
-            // 3) تطبيق الحذف المزامن: إذا كان طالب موجود محلياً ولكنه في قائمة المحذوفات البعيدة
             const remoteDeletedIds = (data.deletedStudents && Array.isArray(data.deletedStudents)) ? data.deletedStudents : [];
             if (remoteDeletedIds.length > 0) {
                 const beforeCount = mergedStudents.length;
                 const filtered = mergedStudents.filter(s => !remoteDeletedIds.includes(s.id));
                 if (filtered.length !== beforeCount) {
                     changed = true;
-                    // تحديث قائمة المحذوفات محلياً
                     remoteDeletedIds.forEach(id => {
                         if (!localDeletedIds.includes(id)) saveDeletedStudent(id);
                     });
@@ -760,40 +770,41 @@ async function syncFromGithub() {
                     const updated = students.find(s => s.id === currentStudent.id);
                     if (updated) displayReport(updated);
                 }
-                console.log('✓ تم دمج البيانات من GitHub');
             }
-            // 4) دمج طلبات التسجيل الجديدة (نتجاهل ما تم قبوله/رفضه مسبقاً على هذا الجهاز)
+
+            // معالجة طلبات التسجيل الفورية
             const remotePending = (data.pendingRegistrations && Array.isArray(data.pendingRegistrations)) ? data.pendingRegistrations : [];
             const remoteProcessed = (data.processedRegistrations && Array.isArray(data.processedRegistrations)) ? data.processedRegistrations : [];
             const localProcessedIds = getProcessedRegistrations();
             let pendingChanged = false;
+            
             remotePending.forEach(function (reg) {
-                if (localProcessedIds.includes(reg.id) || remoteProcessed.includes(reg.id)) return; // تمت معالجته مسبقاً
+                if (localProcessedIds.includes(reg.id) || remoteProcessed.includes(reg.id)) return; 
                 const exists = pendingRegistrations.some(function (p) { return p.id === reg.id; });
                 if (!exists) { pendingRegistrations.push(reg); pendingChanged = true; }
             });
-            // إزالة أي طلب محلي تمت معالجته على جهاز آخر (ظهر في processedRegistrations البعيدة)
+            
             if (remoteProcessed.length > 0) {
                 const before = pendingRegistrations.length;
                 pendingRegistrations = pendingRegistrations.filter(function (p) { return !remoteProcessed.includes(p.id); });
                 if (pendingRegistrations.length !== before) pendingChanged = true;
                 remoteProcessed.forEach(function (id) { saveProcessedRegistration(id); });
             }
+            
             if (pendingChanged) {
                 saveStudentsLocal();
                 renderPendingRegistrations();
-                console.log('✓ تم دمج طلبات التسجيل من GitHub');
+                console.log('✓ وصل طلب تسجيل جديد!');
             }
 
-            if (hasGithubToken()) await fetchGithubSha();
-            // رفع ثنائي الاتجاه: إذا كان هناك طلاب محليون غير موجودين على GitHub، ارفعهم
+            // الرفع إذا كان هناك اختلاف
             const localOnlyStudents = students.filter(s => !remoteStudentIds.includes(s.id));
             const localOnlyDeleted = localDeletedIds.filter(id => !remoteDeletedIds.includes(id));
             const remotePendingIds = remotePending.map(function (p) { return p.id; });
             const localOnlyPending = pendingRegistrations.filter(function (p) { return !remotePendingIds.includes(p.id); });
             const localOnlyProcessed = localProcessedIds.filter(function (id) { return !remoteProcessed.includes(id); });
+            
             if (localOnlyStudents.length > 0 || localOnlyDeleted.length > 0 || localOnlyPending.length > 0 || localOnlyProcessed.length > 0) {
-                console.log('⬆️ رفع ' + localOnlyStudents.length + ' طالب محلي + ' + localOnlyDeleted.length + ' حذف + ' + localOnlyPending.length + ' طلب تسجيل إلى GitHub');
                 await saveStudents();
             }
         }
@@ -2182,6 +2193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLiveClock();
     setInterval(updateLiveClock, 1000);
     // مزامنة تلقائية في الخلفية كل 10 ثوانٍ (Real-time sync)
-setInterval(syncFromGithub, 10000);    // تحديث واجهة المصادقة عند تحميل الصفحة
+    setInterval(syncFromGithub, 10000);
+    // تحديث واجهة المصادقة عند تحميل الصفحة
     updateAuthUI();
 });
