@@ -507,7 +507,7 @@ const mockData = [];
 let students = [];
 let currentStudent = null;
 let currentTeacherFilter = '';
-let currentTrackFilter = 'all'; // إضافة فلتر المسار (أساسي / صيفي)
+let currentTrackFilter = 'all'; 
 let editingRecordIndex = -1;
 let editingStudentId = '';
 
@@ -825,6 +825,7 @@ function confirmAcceptRegistration(regId) {
         nationalId: reg.nationalId,
         teacherId: teacherId,
         track: reg.track || 'أساسي', // حفظ مسار التسجيل من النموذج
+        status: 'active', // حالة الطالب نشط
         completedJuz: [],
         history: [],
         fatherPhone: reg.fatherPhone || '',
@@ -1042,9 +1043,10 @@ function displayReport(student) {
     document.getElementById('reportStudentId').textContent = student.nationalId;
     document.getElementById('reportTeacher').textContent = getTeacherName(student.teacherId);
     
-    // إظهار مسار الطالب في تقرير ولي الأمر
+    // إظهار مسار الطالب في تقرير ولي الأمر وحالة الأرشيف
     const trackBadge = (student.track === 'صيفي') ? '<span style="font-size:0.7rem; background:var(--gold); color:white; padding:2px 6px; border-radius:4px; margin-right:8px; vertical-align:middle;">صيفي مكثف</span>' : '';
-    document.getElementById('reportStudentName').innerHTML = student.name + trackBadge;
+    const archiveBadge = (student.status === 'archived') ? '<span style="font-size:0.7rem; background:var(--gray); color:white; padding:2px 6px; border-radius:4px; margin-right:8px; vertical-align:middle;">طالب مؤرشف</span>' : '';
+    document.getElementById('reportStudentName').innerHTML = student.name + trackBadge + archiveBadge;
 
     const sortedHistory = [...student.history].sort((a, b) => new Date(b.date) - new Date(a.date));
     const latest = sortedHistory[0];
@@ -1214,7 +1216,6 @@ function populateTeacherSelect() {
     select.innerHTML = '<option value="">— كل المعلمين —</option>' + teachers.map(t => '<option value="' + t.id + '">' + t.name + '</option>').join('');
 }
 
-// === دالة تصفية المسار (أساسي/صيفي) ===
 function filterByTrack() {
     const select = document.getElementById('trackFilter');
     currentTrackFilter = select ? select.value : 'all';
@@ -1230,9 +1231,9 @@ function filterByTeacher() {
     renderStatsDashboard();
 }
 
-// دالة جلب الطلاب المفلترين (حسب المعلم وحسب المسار)
+// === إخفاء الطلاب المؤرشفين من العرض العادي ===
 function getFilteredStudents() {
-    let filtered = students;
+    let filtered = students.filter(s => s.status !== 'archived'); // لا يظهر المؤرشفين
     if (currentTeacherFilter) {
         filtered = filtered.filter(s => s.teacherId === currentTeacherFilter);
     }
@@ -1529,7 +1530,6 @@ function addStudent(event) {
     const name = document.getElementById('newStudentName').value.trim();
     const nationalId = document.getElementById('newStudentId').value.trim();
     const teacherId = document.getElementById('newStudentTeacher').value;
-    // قراءة المسار المختار، إذا ما كان موجود نخليه أساسي
     const track = document.getElementById('newStudentTrack') ? document.getElementById('newStudentTrack').value : 'أساسي';
     
     if (!name || !nationalId) { showToast('الرجاء إدخال الاسم ورقم الهوية', 'error'); return; }
@@ -1541,7 +1541,8 @@ function addStudent(event) {
         name: name, 
         nationalId: nationalId, 
         teacherId: teacherId, 
-        track: track, // مسار الطالب
+        track: track,
+        status: 'active', // تفعيل الطالب الجديد
         completedJuz: [], 
         history: [] 
     };
@@ -1564,7 +1565,6 @@ function renderStudentsList() {
         const lastDate = sorted.length > 0 ? formatDate(sorted[0].date) : '—';
         const juzCount = getCompletedJuz(s).length;
         
-        // عرض شارة تميز للطالب الصيفي
         const trackBadge = (s.track === 'صيفي') ? '<span style="font-size:0.7rem; background:var(--gold); color:white; padding:2px 6px; border-radius:4px; margin-right:5px; vertical-align:middle;">صيفي مكثف</span>' : '';
         const nameWithIndicators = '<div style="font-weight:700;color:var(--navy-dark);">' + s.name + trackBadge + '</div>' + renderAchievementIndicators(s);
         
@@ -1594,15 +1594,72 @@ function getDeletedStudents() {
 function deleteStudent(studentId) {
     const student = students.find(s => s.id === studentId);
     if (!student) return;
-    if (!confirm('هل أنت متأكد من حذف الطالب "' + student.name + '"؟\n\nسيتم حذف جميع سجلاته (' + student.history.length + ' متابعة) نهائياً.\nلا يمكن التراجع عن هذا الإجراء.')) return;
+    if (!confirm('هل أنت متأكد من الحذف النهائي للطالب "' + student.name + '"؟\n\nسيتم حذف جميع سجلاته نهائياً ولا يمكن التراجع.')) return;
     const studentName = student.name;
     students = students.filter(s => s.id !== studentId);
     saveDeletedStudent(studentId);
     saveStudents();
-    showToast('تم حذف الطالب "' + studentName + '" بنجاح', 'success');
+    showToast('تم الحذف النهائي للطالب "' + studentName + '"', 'success');
     populateStudentSelect();
     renderStudentsList();
     renderStatsDashboard();
+    renderArchivedStudentsTable(); // تحديث الأرشيف في حال كان محذوفاً من هناك
+}
+
+// === دوال الأرشفة والتغيير الجديدة ===
+function archiveStudent(studentId) {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+    if (!confirm('هل أنت متأكد من أرشفة الطالب "' + student.name + '"؟\nسيتم إخفاؤه من قوائم المعلمين ولكن سيبقى محفوظاً في الأرشيف.')) return;
+    student.status = 'archived';
+    saveStudents();
+    showToast('تم أرشفة الطالب "' + student.name + '" بنجاح', 'success');
+    renderAdminStudentsTable();
+    renderArchivedStudentsTable();
+}
+
+function restoreStudent(studentId) {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+    if (!confirm('هل تريد استعادة الطالب "' + student.name + '" ليعود متاحاً في قوائم المعلمين؟')) return;
+    student.status = 'active';
+    saveStudents();
+    showToast('تم استعادة الطالب "' + student.name + '" بنجاح', 'success');
+    renderAdminStudentsTable();
+    renderArchivedStudentsTable();
+}
+
+function changeStudentTrack(studentId, newTrack) {
+    const student = students.find(s => s.id === studentId);
+    if (!student) return;
+    const oldTrack = student.track || 'أساسي';
+    if (oldTrack === newTrack) return;
+    student.track = newTrack;
+    saveStudents();
+    showToast('تم تغيير مسار الطالب "' + student.name + '" إلى ' + newTrack, 'success');
+}
+
+function renderArchivedStudentsTable() {
+    const tbody = document.getElementById('archivedStudentsBody');
+    if (!tbody) return;
+    const archived = students.filter(s => s.status === 'archived');
+    if (archived.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray);">لا يوجد طلاب في الأرشيف حالياً</td></tr>';
+        return;
+    }
+    tbody.innerHTML = archived.map((s, idx) => {
+        return '<tr>' +
+            '<td>' + (idx + 1) + '</td>' +
+            '<td><div style="font-weight:700;color:var(--navy-dark);">' + s.name + '</div></td>' +
+            '<td>' + s.nationalId + '</td>' +
+            '<td>' + (s.track || 'أساسي') + '</td>' +
+            '<td>' + (s.history ? s.history.length : 0) + '</td>' +
+            '<td>' +
+                '<button class="btn btn-gold" style="padding:0.3rem 0.6rem;font-size:0.8rem;margin-left:4px;" onclick="restoreStudent(\'' + s.id + '\')">استعادة الطالب</button>' +
+                '<button class="btn btn-danger" style="padding:0.3rem 0.6rem;font-size:0.8rem;" onclick="deleteStudent(\'' + s.id + '\')">حذف نهائي</button>' +
+            '</td>' +
+        '</tr>';
+    }).join('');
 }
 
 function setDefaultDate() {
@@ -1635,7 +1692,6 @@ function populateNewStudentTeacherSelect() {
 
 function renderAdminDashboard() {
     renderPendingRegistrations();
-    // جلب الطلاب المفترين حاليا لعرض إحصائياتهم
     const filtered = getFilteredStudents();
     const totalStudents = filtered.length;
     const totalTeachers = teachers.length;
@@ -1657,6 +1713,7 @@ function renderAdminDashboard() {
 
     renderAdminTeachersTable();
     renderAdminStudentsTable();
+    renderArchivedStudentsTable(); // تشغيل الأرشيف
     populateAdminStudentFilter();
 }
 
@@ -1668,7 +1725,7 @@ function renderAdminTeachersTable() {
         return;
     }
     tbody.innerHTML = teachers.map((t, idx) => {
-        const circleStudents = students.filter(s => s.teacherId === t.id);
+        const circleStudents = students.filter(s => s.teacherId === t.id && s.status !== 'archived');
         const excellentInCircle = circleStudents.filter(s => {
             return (s.history || []).filter(h => h.evaluation === 'ممتاز').length >= 3;
         }).length;
@@ -1717,9 +1774,9 @@ function editTeacher(idx) {
 function deleteTeacher(idx) {
     const teacher = teachers[idx];
     if (!teacher) return;
-    const circleStudents = students.filter(s => s.teacherId === teacher.id);
+    const circleStudents = students.filter(s => s.teacherId === teacher.id && s.status !== 'archived');
     if (circleStudents.length > 0) {
-        showToast('لا يمكن حذف حلقة بها طلاب. انقل الطلاب أولاً', 'error');
+        showToast('لا يمكن حذف حلقة بها طلاب نشطين. انقل الطلاب أولاً', 'error');
         return;
     }
     if (!confirm('هل أنت متأكد من حذف حلقة "' + teacher.name + '"؟')) return;
@@ -1746,20 +1803,27 @@ function renderAdminStudentsTable() {
     const filterValue = filterSelect ? filterSelect.value : '';
     let filtered = filterValue ? students.filter(s => s.teacherId === filterValue) : students;
     
-    // تطبيق فلتر المسار في لوحة المشرف أيضاً
+    // إخفاء الأرشيف
+    filtered = filtered.filter(s => s.status !== 'archived');
+
+    // فلتر المسار
     if (currentTrackFilter !== 'all') {
         filtered = filtered.filter(s => (s.track || 'أساسي') === currentTrackFilter);
     }
     
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);">لا يوجد طلاب</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);">لا يوجد طلاب</td></tr>';
         return;
     }
     tbody.innerHTML = filtered.map((s, idx) => {
-        const juzCount = getCompletedJuz(s).length;
         const transferOptions = teachers.map(t =>
             '<option value="' + t.id + '"' + (t.id === s.teacherId ? ' selected' : '') + '>' + t.name + '</option>'
         ).join('');
+        
+        const trackOptions = ['أساسي', 'صيفي'].map(opt => 
+            '<option value="' + opt + '"' + ((s.track || 'أساسي') === opt ? ' selected' : '') + '>' + opt + '</option>'
+        ).join('');
+
         const trackBadge = (s.track === 'صيفي') ? '<br><span style="font-size:0.7rem; background:var(--gold); color:white; padding:2px 4px; border-radius:4px;">صيفي مكثف</span>' : '';
 
         return '<tr>' +
@@ -1767,10 +1831,12 @@ function renderAdminStudentsTable() {
             '<td>' + s.name + trackBadge + '</td>' +
             '<td>' + s.nationalId + '</td>' +
             '<td>' + getTeacherName(s.teacherId) + '</td>' +
-            '<td>' + juzCount + '/30</td>' +
-            '<td>' + s.history.length + '</td>' +
+            '<td><select onchange="changeStudentTrack(\'' + s.id + '\', this.value)" style="padding:0.3rem;border:1px solid #ccc;border-radius:4px;font-size:0.85rem;">' + trackOptions + '</select></td>' +
             '<td><select onchange="transferStudent(\'' + s.id + '\', this.value)" style="padding:0.3rem 0.5rem;border:1px solid var(--gray-light);border-radius:4px;font-family:inherit;font-size:0.85rem;">' + transferOptions + '</select></td>' +
-            '<td><button class="btn btn-danger" onclick="deleteStudent(\'' + s.id + '\')">حذف</button></td>' +
+            '<td style="white-space:nowrap;">' +
+                '<button class="btn btn-outline" style="padding:0.2rem 0.5rem;font-size:0.8rem;margin-left:4px;" onclick="archiveStudent(\'' + s.id + '\')">أرشفة</button>' +
+                '<button class="btn btn-danger" style="padding:0.2rem 0.5rem;font-size:0.8rem;" onclick="deleteStudent(\'' + s.id + '\')">حذف</button>' +
+            '</td>' +
         '</tr>';
     }).join('');
 }
@@ -2056,7 +2122,7 @@ function renderAchievementIndicators(student) {
 function checkDataVersion() {
     const storedVersion = localStorage.getItem(DATA_VERSION_KEY);
     if (storedVersion !== CURRENT_DATA_VERSION) {
-        console.log('🔄 تحديث إصدار البيانات — تفريغ الذاكرة المحلية القديمة');
+        console.log('تحديث إصدار البيانات — تفريغ الذاكرة المحلية القديمة');
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem(TEACHERS_KEY);
         localStorage.setItem(DATA_VERSION_KEY, CURRENT_DATA_VERSION);
