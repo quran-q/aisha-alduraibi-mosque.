@@ -6,9 +6,8 @@
 const STORAGE_KEY = 'quran_students';
 const TEACHERS_KEY = 'quran_teachers';
 const DATA_VERSION_KEY = 'quran_data_version';
-const CURRENT_DATA_VERSION = '5'; // تحديث الإصدرا لمسح أخطاء الكاش
+const CURRENT_DATA_VERSION = '6'; 
 const DELETED_STUDENTS_KEY = 'quran_deleted_students';
-
 const PENDING_REG_KEY = 'quran_pending_registrations';
 const PROCESSED_REG_KEY = 'quran_processed_registrations'; 
 let pendingRegistrations = [];
@@ -27,8 +26,7 @@ const DEFAULT_ACCOUNTS = [
 function loadAccounts() {
     const stored = localStorage.getItem(ACCOUNTS_KEY);
     if (stored) { try { return JSON.parse(stored); } catch (e) { return [...DEFAULT_ACCOUNTS]; } }
-    saveAccounts([...DEFAULT_ACCOUNTS]);
-    return [...DEFAULT_ACCOUNTS];
+    saveAccounts([...DEFAULT_ACCOUNTS]); return [...DEFAULT_ACCOUNTS];
 }
 function saveAccounts(accounts) { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); }
 function getAccounts() { return loadAccounts(); }
@@ -47,8 +45,12 @@ function isTeacher() { const user = getCurrentUser(); return user && user.role =
 function isTeacherLoggedIn() { return isLoggedIn(); }
 
 function handleLogin() {
-    const username = document.getElementById('loginUsername').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
+    const usernameInput = document.getElementById('loginUsername');
+    const passwordInput = document.getElementById('loginPassword');
+    if (!usernameInput || !passwordInput) return;
+
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
     const rememberMe = document.getElementById('rememberMe') ? document.getElementById('rememberMe').checked : false;
 
     if (!username || !password) { showToast('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error'); return; }
@@ -75,11 +77,11 @@ function teacherLogin() { handleLogin(); }
 function handleLogout() {
     if (!confirm('هل تريد تسجيل الخروج؟')) return;
     localStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(REMEMBER_KEY); // تفريغ التذكر لضمان الخروج النهائي
+    localStorage.removeItem(REMEMBER_KEY); 
     showToast('تم تسجيل الخروج', 'success');
     switchTab('student-portal');
     updateAuthUI();
-    setTimeout(() => { window.location.reload(); }, 500); // تحديث الصفحة
+    setTimeout(() => { window.location.reload(); }, 500); 
 }
 function teacherLogout() { handleLogout(); }
 
@@ -99,60 +101,42 @@ function showLoginModal() {
 }
 function closeLoginModal() { const modal = document.getElementById('loginModal'); if (modal) modal.classList.remove('show'); }
 
-function showForgotPasswordModal() {
-    closeLoginModal();
-    const modal = document.getElementById('forgotPasswordModal');
-    if (modal) modal.classList.add('show');
-}
-function closeForgotPasswordModal() {
-    const modal = document.getElementById('forgotPasswordModal');
-    if (modal) modal.classList.remove('show');
-    const input = document.getElementById('forgotUsername');
-    if (input) input.value = '';
-}
+function showForgotPasswordModal() { closeLoginModal(); const modal = document.getElementById('forgotPasswordModal'); if (modal) modal.classList.add('show'); }
+function closeForgotPasswordModal() { const modal = document.getElementById('forgotPasswordModal'); if (modal) modal.classList.remove('show'); const input = document.getElementById('forgotUsername'); if (input) input.value = ''; }
 function handleForgotPassword() {
     const username = document.getElementById('forgotUsername').value.trim();
     if (!username) { showToast('الرجاء إدخال اسم المستخدم', 'error'); return; }
-    const accounts = getAccounts();
-    const account = accounts.find(a => a.username === username);
+    const accounts = getAccounts(); const account = accounts.find(a => a.username === username);
     if (!account) { showToast('اسم المستخدم غير موجود', 'error'); return; }
     showToast('كلمة المرور الخاصة بـ ' + account.name + ': ' + account.password, 'success');
     setTimeout(() => { closeForgotPasswordModal(); showLoginModal(); }, 5000);
 }
 
 function updateAuthUI() {
-    const user = getCurrentUser();
-    const authArea = document.getElementById('authArea');
-    if (!authArea) return;
-    const teacherTabBtn = document.getElementById('teacherTabBtn');
-    const adminTabBtn = document.getElementById('adminTabBtn');
+    const user = getCurrentUser(); const authArea = document.getElementById('authArea'); if (!authArea) return;
+    const teacherTabBtn = document.getElementById('teacherTabBtn'); const adminTabBtn = document.getElementById('adminTabBtn');
     if (user) {
         const roleLabel = user.role === 'admin' ? 'المشرف العام' : user.name;
         authArea.innerHTML = '<span class="user-badge">' + roleLabel + '</span><button class="btn btn-logout" onclick="handleLogout()">تسجيل الخروج</button>';
-        if (teacherTabBtn) teacherTabBtn.style.display = 'flex';
-        if (adminTabBtn) adminTabBtn.style.display = (user.role === 'admin') ? 'flex' : 'none';
+        if (teacherTabBtn) teacherTabBtn.style.display = 'flex'; if (adminTabBtn) adminTabBtn.style.display = (user.role === 'admin') ? 'flex' : 'none';
     } else {
         authArea.innerHTML = '<button class="btn btn-gold" onclick="showLoginModal()">تسجيل الدخول</button>';
-        if (teacherTabBtn) teacherTabBtn.style.display = 'none';
-        if (adminTabBtn) adminTabBtn.style.display = 'none';
+        if (teacherTabBtn) teacherTabBtn.style.display = 'none'; if (adminTabBtn) adminTabBtn.style.display = 'none';
     }
     if (typeof renderPendingRegistrations === 'function') renderPendingRegistrations();
 }
 
 function showAccountsModal() {
     if (!isAdmin()) { showToast('هذه الميزة للمشرف العام فقط', 'error'); return; }
-    const modal = document.getElementById('accountsModal');
-    if (!modal) return;
+    const modal = document.getElementById('accountsModal'); if (!modal) return;
     const teacherSelect = document.getElementById('newAccountTeacherId');
     if (teacherSelect) { teacherSelect.innerHTML = '<option value="">— اختر الحلقة —</option>' + teachers.map(t => '<option value="' + t.id + '">' + t.name + '</option>').join(''); }
-    renderAccountsList();
-    modal.classList.add('show');
+    renderAccountsList(); modal.classList.add('show');
 }
 function closeAccountsModal() { const modal = document.getElementById('accountsModal'); if (modal) modal.classList.remove('show'); }
 
 function renderAccountsList() {
-    const tbody = document.getElementById('accountsListBody');
-    if (!tbody) return;
+    const tbody = document.getElementById('accountsListBody'); if (!tbody) return;
     const accounts = getAccounts();
     if (accounts.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray);">لا يوجد حسابات</td></tr>'; return; }
     tbody.innerHTML = accounts.map((a, idx) => {
@@ -164,14 +148,9 @@ function renderAccountsList() {
 
 function addNewAccount(event) {
     event.preventDefault();
-    const name = document.getElementById('newAccountName').value.trim();
-    const username = document.getElementById('newAccountUsername').value.trim();
-    const password = document.getElementById('newAccountPassword').value.trim();
-    const role = document.getElementById('newAccountRole').value;
-    const teacherId = document.getElementById('newAccountTeacherId').value;
+    const name = document.getElementById('newAccountName').value.trim(); const username = document.getElementById('newAccountUsername').value.trim(); const password = document.getElementById('newAccountPassword').value.trim(); const role = document.getElementById('newAccountRole').value; const teacherId = document.getElementById('newAccountTeacherId').value;
     if (!name || !username || !password) { showToast('الرجاء تعبئة جميع الحقول', 'error'); return; }
-    const accounts = getAccounts();
-    if (accounts.some(a => a.username === username)) { showToast('اسم المستخدم موجود مسبقاً', 'error'); return; }
+    const accounts = getAccounts(); if (accounts.some(a => a.username === username)) { showToast('اسم المستخدم موجود مسبقاً', 'error'); return; }
     accounts.push({ username: username, password: password, role: role, name: name, teacherId: role === 'teacher' ? teacherId : null });
     saveAccounts(accounts); showToast('تم إضافة الحساب', 'success'); document.getElementById('addAccountForm').reset(); renderAccountsList();
 }
@@ -191,21 +170,13 @@ function deleteAccount(idx) {
     accounts.splice(idx, 1); saveAccounts(accounts); showToast('تم الحذف', 'success'); renderAccountsList();
 }
 
-function toggleAccountTeacherField() {
-    const role = document.getElementById('newAccountRole').value;
-    const teacherGroup = document.getElementById('newAccountTeacherGroup');
-    if (teacherGroup) teacherGroup.style.display = (role === 'teacher') ? 'flex' : 'none';
-}
+function toggleAccountTeacherField() { const role = document.getElementById('newAccountRole').value; const teacherGroup = document.getElementById('newAccountTeacherGroup'); if (teacherGroup) teacherGroup.style.display = (role === 'teacher') ? 'flex' : 'none'; }
 
-const GITHUB_OWNER = 'quran-q';
-const GITHUB_REPO = 'aisha-alduraibi-mosque-';
-const GITHUB_BRANCH = 'main';
+const GITHUB_OWNER = 'quran-q'; const GITHUB_REPO = 'aisha-alduraibi-mosque-'; const GITHUB_BRANCH = 'main';
 const GITHUB_DATA_URL = 'https://raw.githubusercontent.com/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/' + GITHUB_BRANCH + '/data.json';
 const GITHUB_API_URL = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/data.json';
-const TOKEN_STORAGE_KEY = 'github_sync_token';
-const DEFAULT_GITHUB_TOKEN = 'ghp_9e3A' + 'CoyqKfiO' + '2tcVfH8W' + 'bY8bcLmb' + 'rV0IQMdy';
-let githubDataSha = '';
-let isSyncing = false;
+const TOKEN_STORAGE_KEY = 'github_sync_token'; const DEFAULT_GITHUB_TOKEN = 'ghp_9e3A' + 'CoyqKfiO' + '2tcVfH8W' + 'bY8bcLmb' + 'rV0IQMdy';
+let githubDataSha = ''; let isSyncing = false;
 
 function getGithubToken() { return localStorage.getItem(TOKEN_STORAGE_KEY) || DEFAULT_GITHUB_TOKEN; }
 function setGithubToken(token) { localStorage.setItem(TOKEN_STORAGE_KEY, token); }
@@ -214,32 +185,21 @@ function showTokenModal() { document.getElementById('tokenModal').classList.add(
 function closeTokenModal() { document.getElementById('tokenModal').classList.remove('show'); }
 function saveTokenFromModal() { const token = document.getElementById('tokenInput').value.trim(); if (!token) return; setGithubToken(token); closeTokenModal(); document.getElementById('tokenInput').value = ''; showToast('تم الحفظ', 'success'); syncFromGithub(); }
 function readTokenFromUrl() { const urlParams = new URLSearchParams(window.location.search); const tokenFromUrl = urlParams.get('token'); if (tokenFromUrl) { setGithubToken(tokenFromUrl); window.history.replaceState({}, document.title, window.location.origin + window.location.pathname); return true; } return false; }
-
 function generateSyncLink() { return window.location.origin + window.location.pathname + '?token=' + encodeURIComponent(getGithubToken()); }
-function copyRegistrationLink() {
-    const link = window.location.origin + window.location.pathname.replace(/index\.html$/, '').replace(/\/$/, '') + '/register.html';
-    navigator.clipboard.writeText(link).then(function () { showToast('تم نسخ رابط التسجيل', 'success'); }).catch(function () { prompt('انسخ الرابط يدوياً:', link); });
-}
+function copyRegistrationLink() { const link = window.location.origin + window.location.pathname.replace(/index\.html$/, '').replace(/\/$/, '') + '/register.html'; navigator.clipboard.writeText(link).then(function () { showToast('تم نسخ رابط التسجيل', 'success'); }).catch(function () { prompt('انسخ الرابط يدوياً:', link); }); }
 
 const surahs = ['1. الفاتحة','2. البقرة','3. آل عمران','4. النساء','5. المائدة','6. الأنعام','7. الأعراف','8. الأنفال','9. التوبة','10. يونس','11. هود','12. يوسف','13. الرعد','14. إبراهيم','15. الحجر','16. النحل','17. الإسراء','18. الكهف','19. مريم','20. طه','21. الأنبياء','22. الحج','23. المؤمنون','24. النور','25. الفرقان','26. الشعراء','27. النمل','28. القصص','29. العنكبوت','30. الروم','31. لقمان','32. السجدة','33. الأحزاب','34. سبأ','35. فاطر','36. يس','37. الصافات','38. ص','39. الزمر','40. غافر','41. فصلت','42. الشورى','43. الزخرف','44. الدخان','45. الجاثية','46. الأحقاف','47. محمد','48. الفتح','49. الحجرات','50. ق','51. الذاريات','52. الطور','53. النجم','54. القمر','55. الرحمن','56. الواقعة','57. الحديد','58. المجادلة','59. الحشر','60. الممتحنة','61. الصف','62. الجمعة','63. المنافقون','64. التغابن','65. الطلاق','66. التحريم','67. الملك','68. القلم','69. الحاقة','70. المعارج','71. نوح','72. الجن','73. المزمل','74. المدثر','75. القيامة','76. الإنسان','77. المرسلات','78. النبأ','79. النازعات','80. عبس','81. التكوير','82. الانفطار','83. المطففين','84. الانشقاق','85. البروج','86. الطارق','87. الأعلى','88. الغاشية','89. الفجر','90. البلد','91. الشمس','92. الليل','93. الضحى','94. الشرح','95. التين','96. العلق','97. القدر','98. البينة','99. الزلزلة','100. العاديات','101. القارعة','102. التكاثر','103. العصر','104. الهمزة','105. الفيل','106. قريش','107. الماعون','108. الكوثر','109. الكافرون','110. النصر','111. المسد','112. الإخلاص','113. الفلق','114. الناس'];
 const surahAyahCounts = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,30,20,28,27,26,20,15,19,11,20,22,19,17,19,26,20,15,5,8,8,11,3,6,3,6,3,5,4,5,6,5,4,6,3,6];
 const teachers = [{ id: 't1', name: 'الشيخ أحمد' }, { id: 't2', name: 'الشيخ خالد' }, { id: 't3', name: 'الشيخ عبدالله' }];
 const mockData = [];
 
-let students = [];
-let currentStudent = null;
-let currentTeacherFilter = '';
-let currentTrackFilter = 'all'; 
-let editingRecordIndex = -1;
-let editingStudentId = '';
+let students = []; let currentStudent = null; let currentTeacherFilter = ''; let currentTrackFilter = 'all'; let editingRecordIndex = -1; let editingStudentId = '';
 
 async function loadStudents() {
-    const storedStudents = localStorage.getItem(STORAGE_KEY);
-    const storedTeachers = localStorage.getItem(TEACHERS_KEY);
+    const storedStudents = localStorage.getItem(STORAGE_KEY); const storedTeachers = localStorage.getItem(TEACHERS_KEY);
     if (storedStudents) { try { students = JSON.parse(storedStudents); } catch (e) { students = [...mockData]; saveStudentsLocal(); } } else { students = [...mockData]; saveStudentsLocal(); }
     if (storedTeachers) { try { const parsedTeachers = JSON.parse(storedTeachers); if (parsedTeachers && parsedTeachers.length > 0) { teachers.length = 0; teachers.push(...parsedTeachers); } } catch (e) {} }
-    const storedPending = localStorage.getItem(PENDING_REG_KEY);
-    if (storedPending) { try { pendingRegistrations = JSON.parse(storedPending); } catch (e) { pendingRegistrations = []; } }
+    const storedPending = localStorage.getItem(PENDING_REG_KEY); if (storedPending) { try { pendingRegistrations = JSON.parse(storedPending); } catch (e) { pendingRegistrations = []; } }
     refreshUI(); renderPendingRegistrations(); syncFromGithub();
 }
 
@@ -257,13 +217,7 @@ async function saveStudents() {
     } catch (e) {} finally { isSyncing = false; }
 }
 
-async function fetchGithubSha() {
-    if (!hasGithubToken()) return;
-    try {
-        const response = await fetch(GITHUB_API_URL, { headers: { 'Authorization': 'token ' + getGithubToken(), 'Accept': 'application/vnd.github.v3+json' } });
-        if (response.ok) { const data = await response.json(); githubDataSha = data.sha; }
-    } catch (e) {}
-}
+async function fetchGithubSha() { if (!hasGithubToken()) return; try { const response = await fetch(GITHUB_API_URL, { headers: { 'Authorization': 'token ' + getGithubToken(), 'Accept': 'application/vnd.github.v3+json' } }); if (response.ok) { const data = await response.json(); githubDataSha = data.sha; } } catch (e) {} }
 
 async function syncFromGithub() {
     if (isSyncing) return;
@@ -271,58 +225,21 @@ async function syncFromGithub() {
         const response = await fetch(GITHUB_API_URL, { headers: { 'Authorization': 'token ' + getGithubToken(), 'Accept': 'application/vnd.github.v3+json' }, cache: 'no-store' });
         if (response.ok) {
             const shaData = await response.json(); githubDataSha = shaData.sha;
-            let data = {};
-            try { const decodedBytes = Uint8Array.from(atob(shaData.content.replace(/\s/g, '')), c => c.charCodeAt(0)); data = JSON.parse(new TextDecoder().decode(decodedBytes)); } catch (err) { return; }
-            const remoteStudents = (data.students && Array.isArray(data.students)) ? data.students : [];
-            const remoteStudentIds = remoteStudents.map(s => s.id);
-            const localDeletedIds = getDeletedStudents();
-            let changed = false; const mergedStudents = [];
-
+            let data = {}; try { const decodedBytes = Uint8Array.from(atob(shaData.content.replace(/\s/g, '')), c => c.charCodeAt(0)); data = JSON.parse(new TextDecoder().decode(decodedBytes)); } catch (err) { return; }
+            const remoteStudents = (data.students && Array.isArray(data.students)) ? data.students : []; const remoteStudentIds = remoteStudents.map(s => s.id); const localDeletedIds = getDeletedStudents(); let changed = false; const mergedStudents = [];
             remoteStudents.forEach(remoteStudent => {
-                if (localDeletedIds.includes(remoteStudent.id)) return;
-                const localStudent = students.find(s => s.id === remoteStudent.id);
-                if (localStudent) {
-                    const localHistoryCount = (localStudent.history || []).length; const remoteHistoryCount = (remoteStudent.history || []).length;
-                    if (localHistoryCount > remoteHistoryCount) { mergedStudents.push(localStudent); } else if (remoteHistoryCount > localHistoryCount) { mergedStudents.push(remoteStudent); changed = true; } else { mergedStudents.push(localStudent); }
-                } else { mergedStudents.push(remoteStudent); changed = true; }
+                if (localDeletedIds.includes(remoteStudent.id)) return; const localStudent = students.find(s => s.id === remoteStudent.id);
+                if (localStudent) { const localHistoryCount = (localStudent.history || []).length; const remoteHistoryCount = (remoteStudent.history || []).length; if (localHistoryCount > remoteHistoryCount) { mergedStudents.push(localStudent); } else if (remoteHistoryCount > localHistoryCount) { mergedStudents.push(remoteStudent); changed = true; } else { mergedStudents.push(localStudent); } } else { mergedStudents.push(remoteStudent); changed = true; }
             });
             students.forEach(localStudent => { if (!remoteStudentIds.includes(localStudent.id)) { mergedStudents.push(localStudent); } });
-
             const remoteDeletedIds = (data.deletedStudents && Array.isArray(data.deletedStudents)) ? data.deletedStudents : [];
-            if (remoteDeletedIds.length > 0) {
-                const beforeCount = mergedStudents.length;
-                const filtered = mergedStudents.filter(s => !remoteDeletedIds.includes(s.id));
-                if (filtered.length !== beforeCount) { changed = true; remoteDeletedIds.forEach(id => { if (!localDeletedIds.includes(id)) saveDeletedStudent(id); }); }
-                mergedStudents.length = 0; mergedStudents.push(...filtered);
-            }
-
-            if (changed || mergedStudents.length !== students.length) {
-                students = mergedStudents;
-                if (data.teachers && data.teachers.length > 0) { teachers.length = 0; teachers.push(...data.teachers); }
-                saveStudentsLocal(); refreshUI();
-                if (currentStudent) { const updated = students.find(s => s.id === currentStudent.id); if (updated) displayReport(updated); }
-            }
-
-            const remotePending = (data.pendingRegistrations && Array.isArray(data.pendingRegistrations)) ? data.pendingRegistrations : [];
-            const remoteProcessed = (data.processedRegistrations && Array.isArray(data.processedRegistrations)) ? data.processedRegistrations : [];
-            const localProcessedIds = getProcessedRegistrations();
-            let pendingChanged = false;
-            remotePending.forEach(function (reg) {
-                if (localProcessedIds.includes(reg.id) || remoteProcessed.includes(reg.id)) return; 
-                if (!pendingRegistrations.some(p => p.id === reg.id)) { pendingRegistrations.push(reg); pendingChanged = true; }
-            });
-            if (remoteProcessed.length > 0) {
-                const before = pendingRegistrations.length;
-                pendingRegistrations = pendingRegistrations.filter(p => !remoteProcessed.includes(p.id));
-                if (pendingRegistrations.length !== before) pendingChanged = true;
-                remoteProcessed.forEach(id => saveProcessedRegistration(id));
-            }
+            if (remoteDeletedIds.length > 0) { const beforeCount = mergedStudents.length; const filtered = mergedStudents.filter(s => !remoteDeletedIds.includes(s.id)); if (filtered.length !== beforeCount) { changed = true; remoteDeletedIds.forEach(id => { if (!localDeletedIds.includes(id)) saveDeletedStudent(id); }); } mergedStudents.length = 0; mergedStudents.push(...filtered); }
+            if (changed || mergedStudents.length !== students.length) { students = mergedStudents; if (data.teachers && data.teachers.length > 0) { teachers.length = 0; teachers.push(...data.teachers); } saveStudentsLocal(); refreshUI(); if (currentStudent) { const updated = students.find(s => s.id === currentStudent.id); if (updated) displayReport(updated); } }
+            const remotePending = (data.pendingRegistrations && Array.isArray(data.pendingRegistrations)) ? data.pendingRegistrations : []; const remoteProcessed = (data.processedRegistrations && Array.isArray(data.processedRegistrations)) ? data.processedRegistrations : []; const localProcessedIds = getProcessedRegistrations(); let pendingChanged = false;
+            remotePending.forEach(function (reg) { if (localProcessedIds.includes(reg.id) || remoteProcessed.includes(reg.id)) return; if (!pendingRegistrations.some(p => p.id === reg.id)) { pendingRegistrations.push(reg); pendingChanged = true; } });
+            if (remoteProcessed.length > 0) { const before = pendingRegistrations.length; pendingRegistrations = pendingRegistrations.filter(p => !remoteProcessed.includes(p.id)); if (pendingRegistrations.length !== before) pendingChanged = true; remoteProcessed.forEach(id => saveProcessedRegistration(id)); }
             if (pendingChanged) { saveStudentsLocal(); renderPendingRegistrations(); }
-            const localOnlyStudents = students.filter(s => !remoteStudentIds.includes(s.id));
-            const localOnlyDeleted = localDeletedIds.filter(id => !remoteDeletedIds.includes(id));
-            const remotePendingIds = remotePending.map(p => p.id);
-            const localOnlyPending = pendingRegistrations.filter(p => !remotePendingIds.includes(p.id));
-            const localOnlyProcessed = localProcessedIds.filter(id => !remoteProcessed.includes(id));
+            const localOnlyStudents = students.filter(s => !remoteStudentIds.includes(s.id)); const localOnlyDeleted = localDeletedIds.filter(id => !remoteDeletedIds.includes(id)); const remotePendingIds = remotePending.map(p => p.id); const localOnlyPending = pendingRegistrations.filter(p => !remotePendingIds.includes(p.id)); const localOnlyProcessed = localProcessedIds.filter(id => !remoteProcessed.includes(id));
             if (localOnlyStudents.length > 0 || localOnlyDeleted.length > 0 || localOnlyPending.length > 0 || localOnlyProcessed.length > 0) { await saveStudents(); }
         }
     } catch (e) {}
@@ -332,18 +249,15 @@ function saveProcessedRegistration(regId) { let processed = getProcessedRegistra
 function getProcessedRegistrations() { try { const stored = localStorage.getItem(PROCESSED_REG_KEY); return stored ? JSON.parse(stored) : []; } catch (e) { return []; } }
 
 function renderPendingRegistrations() {
-    const tbody = document.getElementById('pendingRegsBody'); const badge = document.getElementById('adminPendingBadge'); const emptyMsg = document.getElementById('pendingRegsEmpty');
-    const count = pendingRegistrations.length;
+    const tbody = document.getElementById('pendingRegsBody'); const badge = document.getElementById('adminPendingBadge'); const emptyMsg = document.getElementById('pendingRegsEmpty'); const count = pendingRegistrations.length;
     if (badge) { if (count > 0) { badge.textContent = count; badge.style.display = 'inline-flex'; } else { badge.style.display = 'none'; } }
-    if (!tbody) return;
-    if (count === 0) { tbody.innerHTML = ''; if (emptyMsg) emptyMsg.style.display = 'block'; return; }
+    if (!tbody) return; if (count === 0) { tbody.innerHTML = ''; if (emptyMsg) emptyMsg.style.display = 'block'; return; }
     if (emptyMsg) emptyMsg.style.display = 'none';
     const sorted = [...pendingRegistrations].sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
     tbody.innerHTML = sorted.map(reg => {
-        const submitted = formatDate((reg.submittedAt || '').split('T')[0]);
-        const isDuplicate = students.some(s => s.nationalId === reg.nationalId);
+        const submitted = formatDate((reg.submittedAt || '').split('T')[0]); const isDuplicate = students.some(s => s.nationalId === reg.nationalId);
         const trackLabel = reg.track === 'صيفي' ? '<br><span style="font-size:0.75rem;color:var(--gold);font-weight:bold;">مسار صيفي مكثف</span>' : '<br><span style="font-size:0.75rem;color:var(--gray);">مسار أساسي</span>';
-        return '<tr><td>' + reg.name + trackLabel + (isDuplicate ? ' <br><span style="color:var(--red);font-size:0.75rem;">(رقم الهوية مسجّل مسبقاً)</span>' : '') + '</td><td style="direction:ltr;">' + reg.nationalId + '</td><td style="direction:ltr;">' + (reg.fatherPhone || '—') + '</td><td style="direction:ltr;">' + (reg.studentPhone || '—') + '</td><td>' + (reg.birthDate ? formatDate(reg.birthDate) : '—') + '</td><td>' + (reg.educationLevel || '—') + '</td><td>' + (reg.nationality || '—') + '</td><td>' + submitted + '</td><td style="white-space:nowrap;"><button class="btn btn-gold" style="padding:0.4rem 0.8rem;font-size:0.85rem;" onclick="showAcceptRegistrationModal(\'' + reg.id + '\')">قبول</button> <button class="btn btn-danger" onclick="rejectRegistration(\'' + reg.id + '\')">رفض</button></td></tr>';
+        return '<tr><td>' + reg.name + trackLabel + (isDuplicate ? ' <br><span style="color:var(--red);font-size:0.75rem;">(مكرر)</span>' : '') + '</td><td style="direction:ltr;">' + reg.nationalId + '</td><td style="direction:ltr;">' + (reg.fatherPhone || '—') + '</td><td style="direction:ltr;">' + (reg.studentPhone || '—') + '</td><td>' + (reg.birthDate ? formatDate(reg.birthDate) : '—') + '</td><td>' + (reg.educationLevel || '—') + '</td><td>' + (reg.nationality || '—') + '</td><td>' + submitted + '</td><td style="white-space:nowrap;"><button class="btn btn-gold" style="padding:0.4rem 0.8rem;font-size:0.85rem;" onclick="showAcceptRegistrationModal(\'' + reg.id + '\')">قبول</button> <button class="btn btn-danger" onclick="rejectRegistration(\'' + reg.id + '\')">رفض</button></td></tr>';
     }).join('');
 }
 
@@ -375,16 +289,9 @@ function updateLiveClock() { const now = new Date(); const days = ['الأحد',
 function switchTab(tabId) {
     if ((tabId === 'teacher-panel' || tabId === 'admin-panel') && !isTeacherLoggedIn()) { showLoginModal(); return; }
     if (tabId === 'admin-panel' && !isAdmin()) { showToast('هذه اللوحة للمشرف العام فقط', 'error'); return; }
-    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    const tabSection = document.getElementById(tabId); if (tabSection) tabSection.classList.add('active');
-    const tabBtn = document.querySelector('[data-tab="' + tabId + '"]'); if (tabBtn) tabBtn.classList.add('active');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (tabId === 'teacher-panel') {
-        const user = getCurrentUser();
-        if (user && user.role === 'teacher' && user.teacherId) { currentTeacherFilter = user.teacherId; const teacherFilter = document.getElementById('teacherFilter'); if (teacherFilter) teacherFilter.value = user.teacherId; const filterCard = document.querySelector('.teacher-filter-card'); if (filterCard) filterCard.style.display = 'none'; }
-        refreshUI(); updateHijriPreview(); populateSurahDropdowns(); populateJuzDropdown(); populateNewStudentTeacherSelect();
-    }
+    document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const tabSection = document.getElementById(tabId); if (tabSection) tabSection.classList.add('active'); const tabBtn = document.querySelector('[data-tab="' + tabId + '"]'); if (tabBtn) tabBtn.classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (tabId === 'teacher-panel') { const user = getCurrentUser(); if (user && user.role === 'teacher' && user.teacherId) { currentTeacherFilter = user.teacherId; const teacherFilter = document.getElementById('teacherFilter'); if (teacherFilter) teacherFilter.value = user.teacherId; const filterCard = document.querySelector('.teacher-filter-card'); if (filterCard) filterCard.style.display = 'none'; } refreshUI(); updateHijriPreview(); populateSurahDropdowns(); populateJuzDropdown(); populateNewStudentTeacherSelect(); }
     if (tabId === 'admin-panel') { renderAdminDashboard(); }
     updateAuthUI();
 }
@@ -405,21 +312,13 @@ function calculateProgress(student) { const completed = getCompletedJuz(student)
 function renderJuzTracker(student) { const completed = getCompletedJuz(student); let html = ''; for (let i = 1; i <= 30; i++) { const isCompleted = completed.includes(i); html += '<div class="juz-cell ' + (isCompleted ? 'juz-completed' : '') + '">' + i + '</div>'; } return html; }
 
 function calculateBadges(student) {
-    const badges = []; const history = student.history || []; const completed = getCompletedJuz(student);
-    const excellentCount = history.filter(h => h.evaluation === 'ممتاز').length;
+    const badges = []; const history = student.history || []; const completed = getCompletedJuz(student); const excellentCount = history.filter(h => h.evaluation === 'ممتاز').length;
     if (excellentCount >= 3) badges.push({ name: 'الحافظ المتقن', desc: '3 تقييمات ممتازة' });
-    const presentCount = history.filter(h => h.attendance === 'حاضر').length;
-    if (presentCount >= 5) badges.push({ name: 'المواظبة', desc: '5 حصص' });
-    if (completed.length >= 1) badges.push({ name: 'ختم الجزء', desc: 'أكمل جزء' });
-    if (completed.length >= 15) badges.push({ name: 'نصف الحافظ', desc: 'نصف القرآن' });
-    if (completed.length >= 30) badges.push({ name: 'حافظ القرآن', desc: 'ختم القرآن' });
+    const presentCount = history.filter(h => h.attendance === 'حاضر').length; if (presentCount >= 5) badges.push({ name: 'المواظبة', desc: '5 حصص' });
+    if (completed.length >= 1) badges.push({ name: 'ختم الجزء', desc: 'أكمل جزء' }); if (completed.length >= 15) badges.push({ name: 'نصف الحافظ', desc: 'نصف القرآن' }); if (completed.length >= 30) badges.push({ name: 'حافظ القرآن', desc: 'ختم القرآن' });
     return badges;
 }
-function renderBadges(student) {
-    const badges = calculateBadges(student);
-    if (badges.length === 0) return '<p class="no-badges">لا توجد أوسمة بعد</p>';
-    return badges.map(b => '<div class="badge-medal"><span class="badge-name">' + b.name + '</span></div>').join('');
-}
+function renderBadges(student) { const badges = calculateBadges(student); if (badges.length === 0) return '<p class="no-badges">لا توجد أوسمة بعد</p>'; return badges.map(b => '<div class="badge-medal"><span class="badge-name">' + b.name + '</span></div>').join(''); }
 function getStudentInitials(name) { const parts = name.trim().split(' '); if (parts.length >= 2) return parts[0][0] + parts[1][0]; return name.substring(0, 2); }
 
 function displayReport(student) {
@@ -435,17 +334,13 @@ function displayReport(student) {
         document.getElementById('reportDate').textContent = formatDate(latest.date); document.getElementById('reportAttendance').innerHTML = getAttendanceBadge(latest.attendance);
         document.getElementById('reportMemorization').textContent = latest.memorization || '—'; document.getElementById('reportReview').textContent = latest.review || '—';
         document.getElementById('reportStopPoint').textContent = latest.stopPoint || '—'; document.getElementById('reportEvaluation').innerHTML = getEvaluationBadge(latest.evaluation); document.getElementById('reportNotes').textContent = latest.notes || '—';
-    } else {
-        document.getElementById('reportDate').textContent = 'لا يوجد سجل'; ['reportAttendance', 'reportMemorization', 'reportReview', 'reportStopPoint', 'reportEvaluation', 'reportNotes'].forEach(id => document.getElementById(id).textContent = '—');
-    }
-    const progress = calculateProgress(student); document.getElementById('juzTracker').innerHTML = renderJuzTracker(student); document.getElementById('progressPercent').textContent = progress + '%'; document.getElementById('progressBar').style.width = progress + '%';
-    document.getElementById('completedJuzCount').textContent = getCompletedJuz(student).length + ' / 30 جزء'; document.getElementById('badgesContainer').innerHTML = renderBadges(student);
+    } else { document.getElementById('reportDate').textContent = 'لا يوجد سجل'; ['reportAttendance', 'reportMemorization', 'reportReview', 'reportStopPoint', 'reportEvaluation', 'reportNotes'].forEach(id => document.getElementById(id).textContent = '—'); }
+    const progress = calculateProgress(student); document.getElementById('juzTracker').innerHTML = renderJuzTracker(student); document.getElementById('progressPercent').textContent = progress + '%'; document.getElementById('progressBar').style.width = progress + '%'; document.getElementById('completedJuzCount').textContent = getCompletedJuz(student).length + ' / 30 جزء'; document.getElementById('badgesContainer').innerHTML = renderBadges(student);
     renderHistoryTable(sortedHistory, student);
 }
 
 function renderHistoryTable(history, student) {
-    const tbody = document.getElementById('historyTableBody');
-    if (history.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);">لا يوجد سجل تاريخي</td></tr>'; return; }
+    const tbody = document.getElementById('historyTableBody'); if (history.length === 0) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);">لا يوجد سجل تاريخي</td></tr>'; return; }
     const studentId = student ? student.id : (currentStudent ? currentStudent.id : '');
     tbody.innerHTML = history.map((h) => {
         const realIndex = student ? student.history.indexOf(h) : -1;
@@ -462,8 +357,7 @@ function updateHijriPreview() { const dateInput = document.getElementById('track
 function populateSurahDropdowns() {
     const surahOptions = '<option value="">— اختر السورة —</option>' + surahs.map(s => '<option value="' + s + '">' + s + '</option>').join('');
     const memField = document.getElementById('memorization'); const revField = document.getElementById('review');
-    if (memField) { const v = memField.value; memField.innerHTML = surahOptions; memField.value = v; }
-    if (revField) { const v = revField.value; revField.innerHTML = surahOptions; revField.value = v; }
+    if (memField) { const v = memField.value; memField.innerHTML = surahOptions; memField.value = v; } if (revField) { const v = revField.value; revField.innerHTML = surahOptions; revField.value = v; }
 }
 function updateAyahDropdowns(surahSelectId, fromAyahId, toAyahId) {
     const surahSelect = document.getElementById(surahSelectId); const fromSelect = document.getElementById(fromAyahId); const toSelect = document.getElementById(toAyahId);
@@ -490,8 +384,7 @@ function predictFromMemorization(memText, stopPoint) {
 function showPrediction(studentId) {
     const student = students.find(s => s.id === studentId); if (!student) return; const predDiv = document.getElementById('predictionSuggestion'); if (!predDiv) return;
     const prediction = predictNextMemorization(student); if (!prediction) { predDiv.classList.remove('show'); return; }
-    predDiv.innerHTML = '<div class="pred-title">التنبؤ بالحفظ</div><div class="pred-content">' + prediction.reason + '</div><button class="pred-apply-btn" onclick="applyPrediction(\'' + prediction.surahNum + '\',' + prediction.fromAyah + ',' + prediction.toAyah + ')">تطبيق</button>';
-    predDiv.classList.add('show');
+    predDiv.innerHTML = '<div class="pred-title">التنبؤ بالحفظ</div><div class="pred-content">' + prediction.reason + '</div><button class="pred-apply-btn" onclick="applyPrediction(\'' + prediction.surahNum + '\',' + prediction.fromAyah + ',' + prediction.toAyah + ')">تطبيق</button>'; predDiv.classList.add('show');
 }
 function applyPrediction(surahNum, fromAyah, toAyah) {
     const surahName = surahs[surahNum - 1]; const memSelect = document.getElementById('memorization'); const fromSelect = document.getElementById('memorizationFromAyah'); const toSelect = document.getElementById('memorizationToAyah');
@@ -501,7 +394,6 @@ function applyPrediction(surahNum, fromAyah, toAyah) {
 
 function populateJuzDropdown() { const select = document.getElementById('completedJuzSelect'); if (!select) return; let html = '<option value="">— اختر الجزء —</option>'; for (let i = 1; i <= 30; i++) html += '<option value="' + i + '">الجزء ' + i + '</option>'; select.innerHTML = html; }
 function populateTeacherSelect() { const select = document.getElementById('teacherFilter'); if (!select) return; select.innerHTML = '<option value="">— كل المعلمين —</option>' + teachers.map(t => '<option value="' + t.id + '">' + t.name + '</option>').join(''); }
-
 function filterByTrack() { const select = document.getElementById('trackFilter'); currentTrackFilter = select ? select.value : 'all'; refreshUI(); }
 function filterByTeacher() { currentTeacherFilter = document.getElementById('teacherFilter').value; refreshUI(); }
 
@@ -513,8 +405,7 @@ function getFilteredStudents() {
 }
 
 function populateStudentSelect() {
-    const select = document.getElementById('studentSelect'); if (!select) return;
-    const filtered = getFilteredStudents();
+    const select = document.getElementById('studentSelect'); if (!select) return; const filtered = getFilteredStudents();
     select.innerHTML = '<option value="">— اختر الطالب —</option>' + filtered.map(s => '<option value="' + s.id + '">' + s.name + ' - ' + s.nationalId + '</option>').join('');
 }
 function updateStudentJuzInfo() {
@@ -522,8 +413,7 @@ function updateStudentJuzInfo() {
     if (!studentId || !infoDiv) { if (infoDiv) infoDiv.innerHTML = ''; return; }
     const student = students.find(s => s.id === studentId); if (!student) { infoDiv.innerHTML = ''; return; }
     const completed = getCompletedJuz(student); const progress = calculateProgress(student);
-    infoDiv.innerHTML = 'الأجزاء المكتملة: <strong>' + completed.length + ' / 30</strong> · النسبة: <strong>' + progress + '%</strong>';
-    showPrediction(studentId);
+    infoDiv.innerHTML = 'الأجزاء المكتملة: <strong>' + completed.length + ' / 30</strong> · النسبة: <strong>' + progress + '%</strong>'; showPrediction(studentId);
 }
 
 function renderStatsDashboard() {
@@ -532,8 +422,7 @@ function renderStatsDashboard() {
     filtered.forEach(s => {
         const sorted = [...(s.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date)); const latest = sorted[0];
         if (latest && latest.date === today && (latest.attendance === 'حاضر' || latest.attendance === 'متأخر')) presentToday++;
-        const excellentCount = (s.history || []).filter(h => h.evaluation === 'ممتاز').length;
-        if (excellentCount >= 3) excellentStudents++;
+        if ((s.history || []).filter(h => h.evaluation === 'ممتاز').length >= 3) excellentStudents++;
     });
     const totalEl = document.getElementById('statTotalStudents'); const presentEl = document.getElementById('statPresentToday'); const excellentEl = document.getElementById('statExcellentStudents');
     if (totalEl) totalEl.textContent = totalStudents; if (presentEl) presentEl.textContent = presentToday; if (excellentEl) excellentEl.textContent = excellentStudents;
@@ -545,8 +434,7 @@ function showExcellentStudentsModal() {
     if (excellent.length === 0) { modalBody.innerHTML = '<p class="no-excellent">لا يوجد طلاب ممتازون حالياً</p>'; } 
     else {
         modalBody.innerHTML = excellent.map(s => {
-            const excellentCount = (s.history || []).filter(h => h.evaluation === 'ممتاز').length;
-            const initials = getStudentInitials(s.name);
+            const excellentCount = (s.history || []).filter(h => h.evaluation === 'ممتاز').length; const initials = getStudentInitials(s.name);
             return '<div class="excellent-student-card"><div class="student-avatar">' + initials + '</div><div class="excellent-student-info"><div class="excellent-student-name">' + s.name + '</div><div class="excellent-student-meta">المعلم: ' + getTeacherName(s.teacherId) + ' · ' + excellentCount + ' تقييم ممتاز</div></div></div>';
         }).join('');
     }
@@ -556,8 +444,7 @@ function closeExcellentModal() { document.getElementById('excellentModal').class
 
 function editHistoryRecord(studentId, recordIndex) {
     const student = students.find(s => s.id === studentId); if (!student) return; const record = student.history[recordIndex]; if (!record) return;
-    editingRecordIndex = recordIndex; editingStudentId = studentId;
-    let memSurah = '', memFrom = '', memTo = '';
+    editingRecordIndex = recordIndex; editingStudentId = studentId; let memSurah = '', memFrom = '', memTo = '';
     if (record.memorization && record.memorization !== '—') {
         const surahMatch = record.memorization.match(/^(\d+\.\s[^-]+)/); if (surahMatch) memSurah = surahMatch[1].trim();
         const fromMatch = record.memorization.match(/من آية (\d+)/); const toMatch = record.memorization.match(/إلى آية (\d+)/);
@@ -577,16 +464,15 @@ function editHistoryRecord(studentId, recordIndex) {
     if (revSurah) { const ayahCount = getSurahAyahCount(revSurah); for (let i = 1; i <= ayahCount; i++) { revFromHtml += '<option value="' + i + '"' + (String(i) === revFrom ? ' selected' : '') + '>آية ' + i + '</option>'; revToHtml += '<option value="' + i + '"' + (String(i) === revTo ? ' selected' : '') + '>آية ' + i + '</option>'; } }
     
     document.getElementById('editModalBody').innerHTML = '<form onsubmit="saveEditedRecord(event)" class="teacher-form"><div class="form-grid">' +
-        '<div class="form-group"><label>التاريخ</label><input type="date" id="editDate" value="' + record.date + '" required></div>' +
-        '<div class="form-group"><label>الحضور</label><select id="editAttendance">' + ['حاضر', 'غائب', 'غائب بعذر', 'متأخر'].map(a => '<option value="' + a + '"' + (a === record.attendance ? ' selected' : '') + '>' + a + '</option>').join('') + '</select></div>' +
+        '<div class="form-group"><label>التاريخ</label><input type="date" id="editDate" value="' + record.date + '" required></div><div class="form-group"><label>الحضور</label><select id="editAttendance">' + ['حاضر', 'غائب', 'غائب بعذر', 'متأخر'].map(a => '<option value="' + a + '"' + (a === record.attendance ? ' selected' : '') + '>' + a + '</option>').join('') + '</select></div>' +
         '<div class="form-group"><label>الحفظ - السورة</label><select id="editMemSurah" onchange="updateEditAyahDropdowns()">' + surahOptions + '</select></div><div class="form-group"><label>من آية</label><select id="editMemFrom">' + memFromHtml + '</select></div><div class="form-group"><label>إلى آية</label><select id="editMemTo">' + memToHtml + '</select></div>' +
         '<div class="form-group"><label>المراجعة - السورة</label><select id="editRevSurah" onchange="updateEditAyahDropdowns()">' + revSurahOptions + '</select></div><div class="form-group"><label>من آية</label><select id="editRevFrom">' + revFromHtml + '</select></div><div class="form-group"><label>إلى آية</label><select id="editRevTo">' + revToHtml + '</select></div>' +
-        '<div class="form-group"><label>خط الوقف</label><input type="text" id="editStopPoint" value="' + (record.stopPoint || '') + '"></div>' +
-        '<div class="form-group"><label>التقييم</label><select id="editEvaluation">' + ['ممتاز', 'جيد جداً', 'جيد', 'يحتاج تحسين', '—'].map(e => '<option value="' + e + '"' + (e === record.evaluation ? ' selected' : '') + '>' + e + '</option>').join('') + '</select></div>' +
+        '<div class="form-group"><label>خط الوقف</label><input type="text" id="editStopPoint" value="' + (record.stopPoint || '') + '"></div><div class="form-group"><label>التقييم</label><select id="editEvaluation">' + ['ممتاز', 'جيد جداً', 'جيد', 'يحتاج تحسين', '—'].map(e => '<option value="' + e + '"' + (e === record.evaluation ? ' selected' : '') + '>' + e + '</option>').join('') + '</select></div>' +
         '<div class="form-group form-group-full"><label>الملاحظات</label><textarea id="editNotes" rows="3">' + (record.notes || '') + '</textarea></div>' +
         '</div><div class="form-actions"><button type="submit" class="btn btn-gold">حفظ التعديلات</button></div></form>';
     document.getElementById('editRecordModal').classList.add('show');
 }
+
 function updateEditAyahDropdowns() {
     const memSurah = document.getElementById('editMemSurah').value; const memFrom = document.getElementById('editMemFrom'); const memTo = document.getElementById('editMemTo');
     const revSurah = document.getElementById('editRevSurah').value; const revFrom = document.getElementById('editRevFrom'); const revTo = document.getElementById('editRevTo');
@@ -617,7 +503,7 @@ function printReport() {
 function copyToWhatsApp() {
     if (!currentStudent) { showToast('الرجاء البحث عن طالب', 'error'); return; }
     const sortedHistory = [...currentStudent.history].sort((a, b) => new Date(b.date) - new Date(a.date)); const latest = sortedHistory[0]; if (!latest) { showToast('لا يوجد سجل', 'error'); return; }
-    const progress = calculateProgress(currentStudent); const completed = getCompletedJuz(currentStudent);
+    const progress = calculateProgress(currentStudent);
     let text = 'تقرير متابعة الطالب\n━━━━━━━━━━━━━━━\nالاسم: ' + currentStudent.name + '\nالمعلم: ' + getTeacherName(currentStudent.teacherId) + '\nالتاريخ: ' + formatDate(latest.date) + '\n━━━━━━━━━━━━━━━\nالحضور: ' + latest.attendance + '\nالحفظ: ' + (latest.memorization || '—') + '\nالمراجعة: ' + (latest.review || '—') + '\n━━━━━━━━━━━━━━━\nالتقدم: ' + progress + '%';
     navigator.clipboard.writeText(text).then(() => { showToast('تم نسخ التقرير للواتساب', 'success'); }).catch(() => { prompt('انسخ النص يدوياً:', text); });
 }
@@ -673,8 +559,7 @@ function populateNewStudentTeacherSelect() { const select = document.getElementB
 
 function renderAdminDashboard() {
     renderPendingRegistrations(); const filtered = getFilteredStudents();
-    document.getElementById('adminStatTotalStudents').textContent = filtered.length;
-    document.getElementById('adminStatTotalTeachers').textContent = teachers.length;
+    document.getElementById('adminStatTotalStudents').textContent = filtered.length; document.getElementById('adminStatTotalTeachers').textContent = teachers.length;
     renderAdminTeachersTable(); renderAdminStudentsTable(); renderArchivedStudentsTable(); populateAdminStudentFilter();
 }
 
@@ -707,21 +592,13 @@ function renderAdminStudentsTable() {
 }
 function transferStudent(studentId, newTeacherId) { const student = students.find(s => s.id === studentId); if (!student) return; if (student.teacherId === newTeacherId) return; student.teacherId = newTeacherId; saveStudents(); renderAdminStudentsTable(); renderAdminTeachersTable(); }
 
-function exportData() {
-    const dataStr = JSON.stringify({ teachers: teachers, students: students, exportDate: new Date().toISOString() }, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'backup.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-}
+function exportData() { const dataStr = JSON.stringify({ teachers: teachers, students: students, exportDate: new Date().toISOString() }, null, 2); const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'backup.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
 
 function bulkAttendance() {
     const filtered = getFilteredStudents(); if (filtered.length === 0) return; const today = new Date().toISOString().split('T')[0];
     const alreadyMarked = filtered.filter(s => { const sorted = [...(s.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date)); const latest = sorted[0]; return latest && latest.date === today && latest.attendance === 'حاضر'; });
     if (alreadyMarked.length === filtered.length) return; if (!confirm('تسجيل حضور جماعي؟')) return;
-    filtered.forEach(s => {
-        const sorted = [...(s.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date)); const latest = sorted[0];
-        if (latest && latest.date === today && latest.attendance === 'حاضر') return;
-        if (!s.history) s.history = []; s.history.push({ date: today, attendance: 'حاضر', memorization: '—', review: '—', stopPoint: '—', evaluation: '—', notes: 'جماعي' });
-    });
+    filtered.forEach(s => { const sorted = [...(s.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date)); const latest = sorted[0]; if (latest && latest.date === today && latest.attendance === 'حاضر') return; if (!s.history) s.history = []; s.history.push({ date: today, attendance: 'حاضر', memorization: '—', review: '—', stopPoint: '—', evaluation: '—', notes: 'جماعي' }); });
     saveStudents(); refreshUI();
 }
 
@@ -739,28 +616,21 @@ function bulkExcellentEval() {
     saveStudents(); refreshUI();
 }
 
-// ==== دوال الإحصائيات التي كانت مفقودة ====
 function getStudentAchievementStats(student) {
-    const history = student.history || []; const completedJuz = getCompletedJuz(student);
-    const totalAyahsQuran = 6236; const ayahsPerJuz = Math.round(totalAyahsQuran / 30);
-    let totalAyahs = 0; let memorizedSurahs = new Set();
-    let firstSessionAyahs = 0; let lastSessionAyahs = 0;
-
+    const history = student.history || []; const completedJuz = getCompletedJuz(student); const totalAyahsQuran = 6236; const ayahsPerJuz = Math.round(totalAyahsQuran / 30);
+    let totalAyahs = 0; let memorizedSurahs = new Set(); let firstSessionAyahs = 0; let lastSessionAyahs = 0;
     history.forEach(function(h) {
         if (h.memorization && h.memorization !== '—') {
             var surahMatch = h.memorization.match(/^(\d+)\./);
             if (surahMatch) {
                 var surahNum = parseInt(surahMatch[1]); memorizedSurahs.add(surahNum);
                 var fromMatch = h.memorization.match(/من آية (\d+)/); var toMatch = h.memorization.match(/إلى آية (\d+)/);
-                if (fromMatch && toMatch) { totalAyahs += (parseInt(toMatch[1]) - parseInt(fromMatch[1]) + 1); } 
-                else if (surahNum >= 1 && surahNum <= 114) { totalAyahs += surahAyahCounts[surahNum - 1]; }
+                if (fromMatch && toMatch) { totalAyahs += (parseInt(toMatch[1]) - parseInt(fromMatch[1]) + 1); } else if (surahNum >= 1 && surahNum <= 114) { totalAyahs += surahAyahCounts[surahNum - 1]; }
             }
         }
     });
-
     var surahsCount = memorizedSurahs.size; var juzCount = completedJuz.length;
     var juzProgress = Math.round((juzCount / 30) * 100); var ayahProgress = Math.min(100, Math.round((totalAyahs / totalAyahsQuran) * 100));
-
     var prediction = null;
     if (history.length > 0) {
         var sortedHistory = history.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
@@ -771,21 +641,12 @@ function getStudentAchievementStats(student) {
         var currentJuzPosition = totalAyahs % ayahsPerJuz; var remainingInJuz = ayahsPerJuz - currentJuzPosition;
         var daysToNextJuz = ayahsPerDay > 0 ? Math.ceil(remainingInJuz / ayahsPerDay) : 0;
         var weeklyRate = Math.round(ayahsPerDay * 7);
-
-        var firstRec = sortedHistory[0]; var lastRec = sortedHistory[sortedHistory.length - 1];
-        firstSessionAyahs = extractAyahCount(firstRec.memorization); lastSessionAyahs = extractAyahCount(lastRec.memorization);
+        firstSessionAyahs = extractAyahCount(sortedHistory[0].memorization); lastSessionAyahs = extractAyahCount(sortedHistory[sortedHistory.length - 1].memorization);
         var improvementRate = firstSessionAyahs > 0 ? Math.round(((lastSessionAyahs - firstSessionAyahs) / firstSessionAyahs) * 100) : 0;
         var completionDate = new Date(); completionDate.setDate(completionDate.getDate() + daysToComplete);
         var nextJuzDate = new Date(); nextJuzDate.setDate(nextJuzDate.getDate() + daysToNextJuz);
-
-        prediction = {
-            ayahsPerDay: Math.round(ayahsPerDay * 10) / 10, weeklyRate: weeklyRate, daysToNextJuz: daysToNextJuz,
-            daysToComplete: daysToComplete, firstSessionAyahs: firstSessionAyahs, lastSessionAyahs: lastSessionAyahs,
-            improvementRate: improvementRate, nextJuzDate: formatDate(nextJuzDate.toISOString().split('T')[0]),
-            completionDate: formatDate(completionDate.toISOString().split('T')[0]), nextJuzNumber: juzCount + 1
-        };
+        prediction = { ayahsPerDay: Math.round(ayahsPerDay * 10) / 10, weeklyRate: weeklyRate, daysToNextJuz: daysToNextJuz, daysToComplete: daysToComplete, firstSessionAyahs: firstSessionAyahs, lastSessionAyahs: lastSessionAyahs, improvementRate: improvementRate, nextJuzDate: formatDate(nextJuzDate.toISOString().split('T')[0]), completionDate: formatDate(completionDate.toISOString().split('T')[0]), nextJuzNumber: juzCount + 1 };
     }
-
     return { ayahs: totalAyahs, ayahProgress: ayahProgress, surahs: surahsCount, juz: juzCount, juzProgress: juzProgress, prediction: prediction };
 }
 
@@ -793,27 +654,19 @@ function extractAyahCount(memText) {
     if (!memText || memText === '—') return 0;
     var fromMatch = memText.match(/من آية (\d+)/); var toMatch = memText.match(/إلى آية (\d+)/);
     if (fromMatch && toMatch) return parseInt(toMatch[1]) - parseInt(fromMatch[1]) + 1;
-    var surahMatch = memText.match(/^(\d+)\./);
-    if (surahMatch) { var surahNum = parseInt(surahMatch[1]); if (surahNum >= 1 && surahNum <= 114) return surahAyahCounts[surahNum - 1]; }
+    var surahMatch = memText.match(/^(\d+)\./); if (surahMatch) { var surahNum = parseInt(surahMatch[1]); if (surahNum >= 1 && surahNum <= 114) return surahAyahCounts[surahNum - 1]; }
     return 0;
 }
 
 function renderAchievementIndicators(student) {
     var stats = getStudentAchievementStats(student);
-    var html = '<div class="student-achievement-indicators">';
-    html += '<span class="achievement-chip chip-ayahs">آيات: ' + stats.ayahs + '</span>';
-    html += '<span class="achievement-chip chip-surahs">سور: ' + stats.surahs + '</span>';
-    html += '<span class="achievement-chip chip-juz">أجزاء: ' + stats.juz + '/30</span>';
-    html += '<span class="achievement-chip chip-progress"><div class="achievement-progress-bar"><div class="achievement-progress-fill" style="width:' + stats.juzProgress + '%"></div></div>' + stats.juzProgress + '%</span>';
-    html += '</div>';
+    var html = '<div class="student-achievement-indicators"><span class="achievement-chip chip-ayahs">آيات: ' + stats.ayahs + '</span><span class="achievement-chip chip-surahs">سور: ' + stats.surahs + '</span><span class="achievement-chip chip-juz">أجزاء: ' + stats.juz + '/30</span><span class="achievement-chip chip-progress"><div class="achievement-progress-bar"><div class="achievement-progress-fill" style="width:' + stats.juzProgress + '%"></div></div>' + stats.juzProgress + '%</span></div>';
     return html;
 }
 
 function checkDataVersion() {
     const storedVersion = localStorage.getItem(DATA_VERSION_KEY);
-    if (storedVersion !== CURRENT_DATA_VERSION) {
-        localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(TEACHERS_KEY); localStorage.setItem(DATA_VERSION_KEY, CURRENT_DATA_VERSION);
-    }
+    if (storedVersion !== CURRENT_DATA_VERSION) { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(TEACHERS_KEY); localStorage.setItem(DATA_VERSION_KEY, CURRENT_DATA_VERSION); }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
