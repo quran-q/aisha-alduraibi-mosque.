@@ -63,9 +63,6 @@ async function submitRegistration(event) {
     } else {
         showRegToast('⚠️ تعذّر إرسال الطلب حالياً، تأكد من اتصالك بالإنترنت وحاول مرة أخرى', 'error');
     }
-}
-
-// رفع الطلب إلى ملف data.json المشترك على GitHub (قراءة ثم دمج ثم كتابة)
 async function sendRegistrationToGithub(registration, isRetry) {
     try {
         const shaResponse = await fetch(GITHUB_API_URL, {
@@ -76,14 +73,26 @@ async function sendRegistrationToGithub(registration, isRetry) {
         const shaData = await shaResponse.json();
         const currentSha = shaData.sha;
         
-        const jsonString = new TextDecoder().decode(Uint8Array.from(atob(shaData.content.replace(/\n/g, '')), c => c.charCodeAt(0)));
-        const currentContent = JSON.parse(jsonString);
+        let currentContent = {};
+        try {
+            const decodedBytes = Uint8Array.from(atob(shaData.content.replace(/\s/g, '')), c => c.charCodeAt(0));
+            const jsonText = new TextDecoder().decode(decodedBytes);
+            currentContent = JSON.parse(jsonText);
+        } catch (err) {
+            currentContent = { teachers: [], students: [], pendingRegistrations: [] };
+        }
 
         const pending = Array.isArray(currentContent.pendingRegistrations) ? currentContent.pendingRegistrations : [];
         pending.push(registration);
         currentContent.pendingRegistrations = pending;
 
-        const encodedContent = btoa(String.fromCharCode.apply(null, new TextEncoder().encode(JSON.stringify(currentContent, null, 2))));
+        const jsonString = JSON.stringify(currentContent, null, 2);
+        const utf8Bytes = new TextEncoder().encode(jsonString);
+        let binaryString = '';
+        for (let i = 0; i < utf8Bytes.length; i++) {
+            binaryString += String.fromCharCode(utf8Bytes[i]);
+        }
+        const encodedContent = btoa(binaryString);
         
         const putResponse = await fetch(GITHUB_API_URL, {
             method: 'PUT',
@@ -110,7 +119,7 @@ async function sendRegistrationToGithub(registration, isRetry) {
         console.error('خطأ في إرسال طلب التسجيل:', e.message);
         return false;
     }
-}}
+}
 
 function showSuccessState() {
     const formCard = document.getElementById('registerFormCard');
