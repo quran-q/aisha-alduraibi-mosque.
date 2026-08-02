@@ -574,7 +574,7 @@
                 <!-- Manage All Students -->
                 <div class="card">
                     <h2 class="card-title">إدارة جميع الطلاب</h2>
-                    <p class="card-desc">عرض جميع الطلاب مع إمكانية النقل بين الحلقات</p>
+                    <p class="card-desc">عرض جميع الطلاب مع إمكانية النقل، تعديل المسار، والأرشفة</p>
                     
                     <!-- Filters -->
                     <div class="form-grid" style="margin-bottom:1rem;">
@@ -602,8 +602,7 @@
                                     <th>اسم الطالب</th>
                                     <th>رقم الهوية</th>
                                     <th>الحلقة الحالية</th>
-                                    <th>الأجزاء</th>
-                                    <th>المتابعات</th>
+                                    <th>تغيير المسار</th>
                                     <th>نقل إلى</th>
                                     <th>إجراء</th>
                                 </tr>
@@ -612,9 +611,27 @@
                         </table>
                     </div>
                 </div>
-            </div>
-        </section>
-    </main>
+
+                <!-- Archived Students (الأرشيف) -->
+                <div class="card" style="border-top: 4px solid var(--gray);">
+                    <h2 class="card-title">أرشيف الطلاب</h2>
+                    <p class="card-desc">الطلاب الذين تم إنهاء دورتهم (مثل طلاب الصيفي). لا يظهرون للمعلمين.</p>
+                    <div class="table-wrap">
+                        <table class="history-table" id="archivedStudentsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم الطالب</th>
+                                    <th>رقم الهوية</th>
+                                    <th>المسار السابق</th>
+                                    <th>عدد المتابعات</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="archivedStudentsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
 
     <!-- ===== Footer ===== -->
     <footer class="site-footer">
