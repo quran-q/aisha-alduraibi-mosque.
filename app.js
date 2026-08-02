@@ -6,7 +6,7 @@
 const STORAGE_KEY = 'quran_students';
 const TEACHERS_KEY = 'quran_teachers';
 const DATA_VERSION_KEY = 'quran_data_version';
-const CURRENT_DATA_VERSION = '6'; 
+const CURRENT_DATA_VERSION = '7'; 
 const DELETED_STUDENTS_KEY = 'quran_deleted_students';
 const PENDING_REG_KEY = 'quran_pending_registrations';
 const PROCESSED_REG_KEY = 'quran_processed_registrations'; 
@@ -44,6 +44,7 @@ function isAdmin() { const user = getCurrentUser(); return user && user.role ===
 function isTeacher() { const user = getCurrentUser(); return user && user.role === 'teacher'; }
 function isTeacherLoggedIn() { return isLoggedIn(); }
 
+// ===== تم التعديل هنا لتظهر رسائل الخطأ بشكل واضح جداً =====
 function handleLogin() {
     const usernameInput = document.getElementById('loginUsername');
     const passwordInput = document.getElementById('loginPassword');
@@ -53,12 +54,18 @@ function handleLogin() {
     const password = passwordInput.value.trim();
     const rememberMe = document.getElementById('rememberMe') ? document.getElementById('rememberMe').checked : false;
 
-    if (!username || !password) { showToast('الرجاء إدخال اسم المستخدم وكلمة المرور', 'error'); return; }
+    if (!username || !password) { 
+        alert('⚠️ الرجاء إدخال اسم المستخدم وكلمة المرور'); 
+        return; 
+    }
 
     const accounts = getAccounts();
     const account = accounts.find(a => a.username === username && a.password === password);
 
-    if (!account) { showToast('اسم المستخدم أو كلمة المرور غير صحيحة', 'error'); return; }
+    if (!account) { 
+        alert('⚠️ اسم المستخدم أو كلمة المرور غير صحيحة!\n\n💡 تأكد من:\n1. أنك لم تضع مسافة بعد الاسم.\n2. الحروف الكبيرة (Capital) في كلمة المرور.'); 
+        return; 
+    }
 
     const sessionData = { username: account.username, role: account.role, name: account.name, teacherId: account.teacherId };
     localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
@@ -103,13 +110,15 @@ function closeLoginModal() { const modal = document.getElementById('loginModal')
 
 function showForgotPasswordModal() { closeLoginModal(); const modal = document.getElementById('forgotPasswordModal'); if (modal) modal.classList.add('show'); }
 function closeForgotPasswordModal() { const modal = document.getElementById('forgotPasswordModal'); if (modal) modal.classList.remove('show'); const input = document.getElementById('forgotUsername'); if (input) input.value = ''; }
+
+// ===== تم التعديل هنا لتظهر كلمة المرور بوضوح للمستخدم =====
 function handleForgotPassword() {
     const username = document.getElementById('forgotUsername').value.trim();
-    if (!username) { showToast('الرجاء إدخال اسم المستخدم', 'error'); return; }
+    if (!username) { alert('الرجاء إدخال اسم المستخدم'); return; }
     const accounts = getAccounts(); const account = accounts.find(a => a.username === username);
-    if (!account) { showToast('اسم المستخدم غير موجود', 'error'); return; }
-    showToast('كلمة المرور الخاصة بـ ' + account.name + ': ' + account.password, 'success');
-    setTimeout(() => { closeForgotPasswordModal(); showLoginModal(); }, 5000);
+    if (!account) { alert('اسم المستخدم غير موجود بالنظام'); return; }
+    alert('🔑 كلمة المرور الخاصة بك هي:\n\n' + account.password);
+    closeForgotPasswordModal(); showLoginModal();
 }
 
 function updateAuthUI() {
@@ -472,7 +481,6 @@ function editHistoryRecord(studentId, recordIndex) {
         '</div><div class="form-actions"><button type="submit" class="btn btn-gold">حفظ التعديلات</button></div></form>';
     document.getElementById('editRecordModal').classList.add('show');
 }
-
 function updateEditAyahDropdowns() {
     const memSurah = document.getElementById('editMemSurah').value; const memFrom = document.getElementById('editMemFrom'); const memTo = document.getElementById('editMemTo');
     const revSurah = document.getElementById('editRevSurah').value; const revFrom = document.getElementById('editRevFrom'); const revTo = document.getElementById('editRevTo');
@@ -592,7 +600,11 @@ function renderAdminStudentsTable() {
 }
 function transferStudent(studentId, newTeacherId) { const student = students.find(s => s.id === studentId); if (!student) return; if (student.teacherId === newTeacherId) return; student.teacherId = newTeacherId; saveStudents(); renderAdminStudentsTable(); renderAdminTeachersTable(); }
 
-function exportData() { const dataStr = JSON.stringify({ teachers: teachers, students: students, exportDate: new Date().toISOString() }, null, 2); const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'backup.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }
+function exportData() {
+    const dataStr = JSON.stringify({ teachers: teachers, students: students, exportDate: new Date().toISOString() }, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' }); const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'backup.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
 
 function bulkAttendance() {
     const filtered = getFilteredStudents(); if (filtered.length === 0) return; const today = new Date().toISOString().split('T')[0];
