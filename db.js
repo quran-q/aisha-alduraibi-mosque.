@@ -7,7 +7,7 @@ const NAMES_KEY = 'names_db';
 
 // ===== GitHub Config (قاعدة البيانات المشتركة بين الأجهزة) =====
 const GITHUB_OWNER = 'quran-q';
-const GITHUB_REPO = 'quran-student-tracker';
+const GITHUB_REPO = 'aisha-alduraibi-mosque-';
 const GITHUB_BRANCH = 'main';
 const GITHUB_NAMES_FILE = 'names.json';
 const GITHUB_DATA_URL = 'https://raw.githubusercontent.com/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/' + GITHUB_BRANCH + '/' + GITHUB_NAMES_FILE;
