@@ -63,7 +63,7 @@ async function submitRegistration(event) {
     } else {
         showRegToast('⚠️ تعذّر إرسال الطلب حالياً، تأكد من اتصالك بالإنترنت وحاول مرة أخرى', 'error');
     }
-} // <--- تم إضافة القوس الناقص هنا بنجاح
+}
 
 async function sendRegistrationToGithub(registration, isRetry) {
     try {
