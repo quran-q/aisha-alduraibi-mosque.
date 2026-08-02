@@ -5,7 +5,7 @@
 
 // ===== GitHub Config (نفس قاعدة البيانات المشتركة مع النظام الرئيسي) =====
 const GITHUB_OWNER = 'quran-q';
-const GITHUB_REPO = 'quran-student-tracker';
+const GITHUB_REPO = 'aisha-alduraibi-mosque-';
 const GITHUB_BRANCH = 'main';
 const GITHUB_API_URL = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/data.json';
 const TOKEN_STORAGE_KEY = 'github_sync_token';
