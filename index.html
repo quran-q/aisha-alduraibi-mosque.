@@ -187,7 +187,7 @@
                             </div>
                         </div>
 
-                        <!-- Print Seal (visible only in print) -->
+                        <!-- Print Seal -->
                         <div id="printSeal" class="print-seal"></div>
 
                         <!-- Action Buttons -->
@@ -231,13 +231,6 @@
         <!-- ===== Teacher Panel ===== -->
         <section id="teacher-panel" class="tab-section">
             <div class="portal-container">
-                <!-- Logout Button -->
-                <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;">
-                    <button onclick="teacherLogout()" style="cursor:pointer;background:var(--red);color:var(--white);border:none;border-radius:var(--radius-sm);padding:0.6rem 1.2rem;font-family:inherit;font-weight:700;font-size:0.9rem;transition:var(--transition);">
-                        تسجيل الخروج
-                    </button>
-                </div>
-
                 <!-- Stats Dashboard -->
                 <div class="stats-dashboard">
                     <div class="stat-card stat-total">
@@ -263,7 +256,7 @@
                     </div>
                 </div>
 
-                <!-- Filters (Teacher & Track) -->
+                <!-- Filters -->
                 <div class="card teacher-filter-card">
                     <h2 class="card-title">تصفية الطلاب</h2>
                     <p class="card-desc">اختر المعلم والمسار لعرض الطلاب المحددين</p>
@@ -285,7 +278,7 @@
                     </div>
                 </div>
 
-                <!-- Record Tracking Form -->
+                <!-- Tracking Form -->
                 <div class="card">
                     <h2 class="card-title">تسجيل متابعة طالب</h2>
                     <p class="card-desc">اختر الطالب وسجّل متابعة اليوم</p>
@@ -410,7 +403,7 @@
                     </form>
                 </div>
 
-                <!-- Smart Completion Buttons -->
+                <!-- Smart Actions -->
                 <div class="card smart-actions-card">
                     <h2 class="card-title">إجراءات سريعة ذكية</h2>
                     <p class="card-desc">أزرار ذكية لتسجيل الإنجازات بسرعة</p>
@@ -454,14 +447,8 @@
         <!-- ===== Admin Panel ===== -->
         <section id="admin-panel" class="tab-section">
             <div class="portal-container">
-                <!-- Logout Button -->
-                <div style="display:flex;justify-content:flex-end;margin-bottom:0.5rem;">
-                    <button onclick="handleLogout()" style="cursor:pointer;background:var(--red);color:var(--white);border:none;border-radius:var(--radius-sm);padding:0.6rem 1.2rem;font-family:inherit;font-weight:700;font-size:0.9rem;transition:var(--transition);">
-                        تسجيل الخروج
-                    </button>
-                </div>
-
-                <!-- Admin Stats Dashboard -->
+                
+                <!-- Admin Stats -->
                 <div class="stats-dashboard">
                     <div class="stat-card stat-total">
                         <div class="stat-icon"></div>
@@ -504,7 +491,7 @@
                     </div>
                 </div>
 
-                <!-- New Registration Requests -->
+                <!-- Pending Regs -->
                 <div class="card" id="pendingRegsCard">
                     <h2 class="card-title">طلبات التسجيل الجديدة</h2>
                     <p class="card-desc">طلبات وصلت عبر رابط التسجيل العام — بانتظار القبول أو الرفض</p>
@@ -529,12 +516,10 @@
                     <p id="pendingRegsEmpty" style="text-align:center;color:var(--gray);padding:1.5rem 0;">لا توجد طلبات تسجيل معلّقة حالياً</p>
                 </div>
 
-                <!-- Manage Teachers / Circles -->
+                <!-- Manage Teachers -->
                 <div class="card" id="adminAddTeacherCard">
                     <h2 class="card-title">إدارة الحلقات والمعلمين</h2>
                     <p class="card-desc">إضافة معلم/حلقة جديدة أو تعديل الموجودين</p>
-                    
-                    <!-- Add New Teacher Form -->
                     <form id="addTeacherForm" class="teacher-form" onsubmit="addNewTeacher(event)" style="margin-bottom:1.5rem;padding:1rem;background:var(--off-white);border-radius:var(--radius-sm);">
                         <h3 style="font-size:1rem;margin-bottom:0.8rem;color:var(--navy-dark);">إضافة معلم / حلقة جديدة</h3>
                         <div class="form-grid">
@@ -551,8 +536,6 @@
                             <button type="submit" class="btn btn-gold">إضافة الحلقة</button>
                         </div>
                     </form>
-
-                    <!-- Teachers List -->
                     <h3 style="font-size:1rem;margin-bottom:0.8rem;color:var(--navy-dark);">الحلقات الحالية</h3>
                     <div class="table-wrap">
                         <table class="history-table" id="adminTeachersTable">
@@ -575,8 +558,6 @@
                 <div class="card">
                     <h2 class="card-title">إدارة جميع الطلاب</h2>
                     <p class="card-desc">عرض جميع الطلاب مع إمكانية النقل، تعديل المسار، والأرشفة</p>
-                    
-                    <!-- Filters -->
                     <div class="form-grid" style="margin-bottom:1rem;">
                         <div class="form-group">
                             <label for="adminStudentFilter">تصفية بالحلقة</label>
@@ -593,7 +574,6 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="table-wrap">
                         <table class="history-table" id="adminStudentsTable">
                             <thead>
@@ -612,7 +592,7 @@
                     </div>
                 </div>
 
-                <!-- Archived Students (الأرشيف) -->
+                <!-- Archived Students -->
                 <div class="card" style="border-top: 4px solid var(--gray);">
                     <h2 class="card-title">أرشيف الطلاب</h2>
                     <p class="card-desc">الطلاب الذين تم إنهاء دورتهم (مثل طلاب الصيفي). لا يظهرون للمعلمين.</p>
@@ -633,12 +613,16 @@
                     </div>
                 </div>
 
+            </div>
+        </section>
+    </main>
+
     <!-- ===== Footer ===== -->
     <footer class="site-footer">
         <p>© نظام جامع عائشة بنت عبدالعزيز الدريبي لإدارة ومتابعة الطلاب</p>
     </footer>
 
-    <!-- Accept Registration Modal -->
+    <!-- Modals -->
     <div id="acceptRegModal" class="modal-overlay" onclick="if(event.target===this)closeAcceptRegModal()">
         <div class="modal-content" style="max-width:480px;">
             <div class="modal-header">
@@ -649,7 +633,6 @@
         </div>
     </div>
 
-    <!-- Excellent Students Modal -->
     <div id="excellentModal" class="modal-overlay" onclick="if(event.target===this)closeExcellentModal()">
         <div class="modal-content">
             <div class="modal-header">
@@ -660,7 +643,6 @@
         </div>
     </div>
 
-    <!-- Edit History Record Modal -->
     <div id="editRecordModal" class="modal-overlay" onclick="if(event.target===this)closeEditModal()">
         <div class="modal-content">
             <div class="modal-header">
@@ -671,8 +653,7 @@
         </div>
     </div>
 
-    <!-- Login Modal -->
-    <!-- Login Modal -->
+    <!-- Login Modal السليم بدون فورم معقد -->
     <div id="loginModal" class="modal-overlay" onclick="if(event.target===this)closeLoginModal()">
         <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
@@ -683,7 +664,6 @@
                 <p style="margin-bottom:1rem;color:var(--gray);line-height:1.8;text-align:center;">
                     للدخول إلى لوحة الإدارة أو المعلم، أدخل بيانات الاعتماد.
                 </p>
-                <!-- ألغينا الفورم المعقد واستخدمنا حقول مباشرة عشان ما يعلق المتصفح -->
                 <div class="form-group" style="margin-bottom:1rem;">
                     <label for="loginUsername">اسم المستخدم</label>
                     <input type="text" id="loginUsername" placeholder="admin أو اسم المعلم" autocomplete="off" style="direction:ltr;text-align:left;">
@@ -700,14 +680,12 @@
                     <a href="javascript:void(0)" onclick="showForgotPasswordModal()" class="forgot-link">نسيت كلمة المرور؟</a>
                 </div>
                 <div class="form-actions">
-                    <!-- الزر هنا أصبح مباشر يستدعي الوظيفة بدون المرور بالفورم -->
                     <button type="button" class="btn btn-gold" style="width:100%;" onclick="handleLogin()">دخول</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Forgot Password Modal -->
     <div id="forgotPasswordModal" class="modal-overlay" onclick="if(event.target===this)closeForgotPasswordModal()">
         <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
@@ -718,20 +696,17 @@
                 <p style="margin-bottom:1rem;color:var(--gray);line-height:1.8;text-align:center;">
                     أدخل اسم المستخدم لعرض كلمة المرور الخاصة بحسابك.
                 </p>
-                <form onsubmit="event.preventDefault(); handleForgotPassword();">
-                    <div class="form-group" style="margin-bottom:1.5rem;">
-                        <label for="forgotUsername">اسم المستخدم</label>
-                        <input type="text" id="forgotUsername" placeholder="أدخل اسم المستخدم" required autocomplete="off" style="direction:ltr;text-align:left;">
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-gold" style="width:100%;">استعادة كلمة المرور</button>
-                    </div>
-                </form>
+                <div class="form-group" style="margin-bottom:1.5rem;">
+                    <label for="forgotUsername">اسم المستخدم</label>
+                    <input type="text" id="forgotUsername" placeholder="أدخل اسم المستخدم" autocomplete="off" style="direction:ltr;text-align:left;">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-gold" style="width:100%;" onclick="handleForgotPassword()">استعادة كلمة المرور</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Accounts Management Modal -->
     <div id="accountsModal" class="modal-overlay" onclick="if(event.target===this)closeAccountsModal()">
         <div class="modal-content" style="max-width:800px;">
             <div class="modal-header">
@@ -739,7 +714,6 @@
                 <button class="modal-close" onclick="closeAccountsModal()">✕</button>
             </div>
             <div class="modal-body">
-                <!-- Add New Account Form -->
                 <div class="card" style="box-shadow:none;border:2px solid var(--gray-light);margin-bottom:1.5rem;">
                     <h3 class="card-title" style="font-size:1.1rem;">إضافة حساب جديد</h3>
                     <form id="addAccountForm" class="teacher-form" onsubmit="addNewAccount(event)">
@@ -775,8 +749,6 @@
                         </div>
                     </form>
                 </div>
-
-                <!-- Accounts List -->
                 <h3 class="card-title" style="font-size:1.1rem;margin-bottom:1rem;">الحسابات المسجّلة</h3>
                 <div class="table-wrap">
                     <table class="history-table" id="accountsListTable">
@@ -800,5 +772,7 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-<script src="app.js?v=999"></script></body>
+    <!-- تغيير الرقم لقتل الكاش نهائياً -->
+    <script src="app.js?v=999"></script>
+</body>
 </html>
