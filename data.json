@@ -1,0 +1,11 @@
+{
+  "teachers": [
+    { "id": "t1", "name": "الشيخ أحمد" },
+    { "id": "t2", "name": "الشيخ خالد" },
+    { "id": "t3", "name": "الشيخ عبدالله" }
+  ],
+  "students": [],
+  "deletedStudents": [],
+  "pendingRegistrations": [],
+  "processedRegistrations": []
+}
