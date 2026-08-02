@@ -12,7 +12,7 @@
 <body>
     <!-- ===== Live Clock Bar ===== -->
     <div class="live-clock-bar">
-        <div id="liveClock" class="live-clock">🕌 —</div>
+        <div id="liveClock" class="live-clock">—</div>
     </div>
 
     <!-- ===== Header ===== -->
@@ -131,7 +131,7 @@
 
                         <!-- Juz Tracker -->
                         <div class="juz-tracker-section">
-                            <h3 class="section-heading">📊 مؤشر تقدم حفظ القرآن الكريم</h3>
+                            <h3 class="section-heading">مؤشر تقدم حفظ القرآن الكريم</h3>
                             <div class="progress-summary">
                                 <div class="progress-info">
                                     <span id="completedJuzCount">0 / 30 جزء</span>
@@ -146,7 +146,7 @@
 
                         <!-- Badges -->
                         <div class="badges-section">
-                            <h3 class="section-heading">🏅 أوسمة التميز</h3>
+                            <h3 class="section-heading">أوسمة التميز</h3>
                             <div class="badges-container" id="badgesContainer"></div>
                         </div>
 
@@ -155,32 +155,32 @@
                             <h3 class="section-heading">تفاصيل آخر متابعة</h3>
                             <div class="details-grid">
                                 <div class="detail-box">
-                                    <span class="detail-icon">✅</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">حالة الحضور</span>
                                     <span class="detail-value" id="reportAttendance">—</span>
                                 </div>
                                 <div class="detail-box">
-                                    <span class="detail-icon">📖</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">الحفظ الجديد</span>
                                     <span class="detail-value" id="reportMemorization">—</span>
                                 </div>
                                 <div class="detail-box">
-                                    <span class="detail-icon">🔁</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">المراجعة</span>
                                     <span class="detail-value" id="reportReview">—</span>
                                 </div>
                                 <div class="detail-box">
-                                    <span class="detail-icon">📍</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">خط الوقف الحالي</span>
                                     <span class="detail-value" id="reportStopPoint">—</span>
                                 </div>
                                 <div class="detail-box">
-                                    <span class="detail-icon">⭐</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">التقييم</span>
                                     <span class="detail-value" id="reportEvaluation">—</span>
                                 </div>
                                 <div class="detail-box">
-                                    <span class="detail-icon">📝</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">ملاحظات المعلم</span>
                                     <span class="detail-value" id="reportNotes">—</span>
                                 </div>
@@ -199,7 +199,7 @@
 
                     <!-- History Table -->
                     <div class="card history-card">
-                        <h3 class="card-title">📜 السجل التاريخي للمتابعات</h3>
+                        <h3 class="card-title">السجل التاريخي للمتابعات</h3>
                         <div class="table-wrap">
                             <table class="history-table" id="historyTable">
                                 <thead>
@@ -263,15 +263,25 @@
                     </div>
                 </div>
 
-                <!-- Teacher Filter -->
+                <!-- Filters (Teacher & Track) -->
                 <div class="card teacher-filter-card">
-                    <h2 class="card-title">اختيار المعلم / الحلقة</h2>
-                    <p class="card-desc">اختر المعلم لعرض طلابه فقط</p>
-                    <div class="form-group">
-                        <label for="teacherFilter">المعلم</label>
-                        <select id="teacherFilter" onchange="filterByTeacher()">
-                            <option value="">— كل المعلمين —</option>
-                        </select>
+                    <h2 class="card-title">تصفية الطلاب</h2>
+                    <p class="card-desc">اختر المعلم والمسار لعرض الطلاب المحددين</p>
+                    <div class="form-grid">
+                        <div class="form-group" id="teacherFilterGroup">
+                            <label for="teacherFilter">المعلم</label>
+                            <select id="teacherFilter" onchange="filterByTeacher()">
+                                <option value="">— كل المعلمين —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="trackFilter">مسار الطالب</label>
+                            <select id="trackFilter" onchange="filterByTrack()">
+                                <option value="all">— كل المسارات —</option>
+                                <option value="أساسي">أساسي</option>
+                                <option value="صيفي">صيفي مكثف</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -360,7 +370,7 @@
                             </div>
                         </div>
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-gold">💾 حفظ المتابعة</button>
+                            <button type="submit" class="btn btn-gold">حفظ المتابعة</button>
                             <button type="reset" class="btn btn-outline">إعادة تعيين</button>
                         </div>
                     </form>
@@ -384,9 +394,13 @@
                                 <label for="newStudentTeacher">المعلم التابع له</label>
                                 <select id="newStudentTeacher" required>
                                     <option value="">— اختر المعلم —</option>
-                                    <option value="t1">الشيخ أحمد</option>
-                                    <option value="t2">الشيخ خالد</option>
-                                    <option value="t3">الشيخ عبدالله</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="newStudentTrack">مسار الطالب</label>
+                                <select id="newStudentTrack" required>
+                                    <option value="أساسي">مسار أساسي (طوال العام)</option>
+                                    <option value="صيفي">مسار صيفي مكثف</option>
                                 </select>
                             </div>
                         </div>
@@ -483,7 +497,7 @@
                 <div class="card">
                     <h2 class="card-title">إجراءات سريعة</h2>
                     <div class="smart-actions-grid">
-                        <button class="btn btn-gold" onclick="copyRegistrationLink()">🔗 نسخ رابط تسجيل طالب جديد</button>
+                        <button class="btn btn-gold" onclick="copyRegistrationLink()">نسخ رابط تسجيل طالب جديد</button>
                         <button class="btn btn-gold" onclick="showAccountsModal()">إدارة الحسابات</button>
                         <button class="btn btn-outline" onclick="exportData()">تصدير البيانات</button>
                         <button class="btn btn-outline" onclick="document.getElementById('adminAddTeacherCard').scrollIntoView({behavior:'smooth'})">إضافة حلقة جديدة</button>
@@ -492,7 +506,7 @@
 
                 <!-- New Registration Requests -->
                 <div class="card" id="pendingRegsCard">
-                    <h2 class="card-title">📥 طلبات التسجيل الجديدة</h2>
+                    <h2 class="card-title">طلبات التسجيل الجديدة</h2>
                     <p class="card-desc">طلبات وصلت عبر رابط التسجيل العام — بانتظار القبول أو الرفض</p>
                     <div class="table-wrap">
                         <table class="history-table" id="pendingRegsTable">
@@ -562,12 +576,22 @@
                     <h2 class="card-title">إدارة جميع الطلاب</h2>
                     <p class="card-desc">عرض جميع الطلاب مع إمكانية النقل بين الحلقات</p>
                     
-                    <!-- Filter -->
-                    <div class="form-group" style="max-width:400px;margin-bottom:1rem;">
-                        <label for="adminStudentFilter">تصفية بالحلقة</label>
-                        <select id="adminStudentFilter" onchange="renderAdminStudentsTable()">
-                            <option value="">— كل الحلقات —</option>
-                        </select>
+                    <!-- Filters -->
+                    <div class="form-grid" style="margin-bottom:1rem;">
+                        <div class="form-group">
+                            <label for="adminStudentFilter">تصفية بالحلقة</label>
+                            <select id="adminStudentFilter" onchange="renderAdminStudentsTable()">
+                                <option value="">— كل الحلقات —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="adminTrackFilter">تصفية بالمسار</label>
+                            <select id="adminTrackFilter" onchange="document.getElementById('trackFilter').value = this.value; filterByTrack(); renderAdminStudentsTable();">
+                                <option value="all">— كل المسارات —</option>
+                                <option value="أساسي">أساسي</option>
+                                <option value="صيفي">صيفي مكثف</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="table-wrap">
@@ -597,7 +621,7 @@
         <p>© نظام جامع عائشة بنت عبدالعزيز الدريبي لإدارة ومتابعة الطلاب</p>
     </footer>
 
-    <!-- Accept Registration Modal (اختيار الحلقة عند قبول الطالب) -->
+    <!-- Accept Registration Modal -->
     <div id="acceptRegModal" class="modal-overlay" onclick="if(event.target===this)closeAcceptRegModal()">
         <div class="modal-content" style="max-width:480px;">
             <div class="modal-header">
@@ -630,7 +654,7 @@
         </div>
     </div>
 
-    <!-- Login Modal (تسجيل الدخول الذكي) -->
+    <!-- Login Modal -->
     <div id="loginModal" class="modal-overlay" onclick="if(event.target===this)closeLoginModal()">
         <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
@@ -653,18 +677,14 @@
                     <div class="login-options">
                         <label class="remember-me">
                             <input type="checkbox" id="rememberMe">
-                            <span>🔒 تذكرني (حفظ البيانات على هذا الجهاز)</span>
+                            <span>تذكرني (حفظ البيانات على هذا الجهاز)</span>
                         </label>
-                        <a href="javascript:void(0)" onclick="showForgotPasswordModal()" class="forgot-link">🔑 نسيت كلمة المرور؟</a>
+                        <a href="javascript:void(0)" onclick="showForgotPasswordModal()" class="forgot-link">نسيت كلمة المرور؟</a>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-gold" style="width:100%;">دخول</button>
                     </div>
                 </form>
-                <div class="login-hint">
-                    <p>💡 <strong>المشرف العام:</strong> admin / Admin@2024</p>
-                    <p>💡 <strong>المعلمين:</strong> ahmed / Ahmed@123 — khaled / Khaled@123 — abdullah / Abdullah@123</p>
-                </div>
             </div>
         </div>
     </div>
@@ -693,7 +713,7 @@
         </div>
     </div>
 
-    <!-- Accounts Management Modal (للمشرف العام) -->
+    <!-- Accounts Management Modal -->
     <div id="accountsModal" class="modal-overlay" onclick="if(event.target===this)closeAccountsModal()">
         <div class="modal-content" style="max-width:800px;">
             <div class="modal-header">
@@ -729,9 +749,6 @@
                                 <label for="newAccountTeacherId">الحلقة / المعلم</label>
                                 <select id="newAccountTeacherId">
                                     <option value="">— اختر الحلقة —</option>
-                                    <option value="t1">حلقة الشيخ أحمد</option>
-                                    <option value="t2">حلقة الشيخ خالد</option>
-                                    <option value="t3">حلقة الشيخ عبدالله</option>
                                 </select>
                             </div>
                         </div>
@@ -765,6 +782,6 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
 </body>
 </html>
