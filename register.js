@@ -65,6 +65,7 @@ async function submitRegistration(event) {
     }
 }
 
+// رفع الطلب إلى ملف data.json المشترك على GitHub بطريقة آمنة تماماً
 async function sendRegistrationToGithub(registration, isRetry) {
     try {
         const shaResponse = await fetch(GITHUB_API_URL, {
@@ -113,6 +114,7 @@ async function sendRegistrationToGithub(registration, isRetry) {
 
         if (putResponse.ok) return true;
 
+        // في حال تعارض الإصدار، أعد المحاولة مرة واحدة فقط
         if (putResponse.status === 409 && !isRetry) {
             return await sendRegistrationToGithub(registration, true);
         }
