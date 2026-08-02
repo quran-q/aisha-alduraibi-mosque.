@@ -356,7 +356,7 @@ function toggleAccountTeacherField() {
 
 // ===== GitHub Config (قاعدة البيانات المشتركة) =====
 const GITHUB_OWNER = 'quran-q';
-const GITHUB_REPO = 'quran-student-tracker';
+const GITHUB_REPO = 'aisha-alduraibi-mosque-';
 const GITHUB_BRANCH = 'main';
 const GITHUB_DATA_URL = 'https://raw.githubusercontent.com/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/' + GITHUB_BRANCH + '/data.json';
 const GITHUB_API_URL = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/contents/data.json';
@@ -2182,7 +2182,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLiveClock();
     setInterval(updateLiveClock, 1000);
     // مزامنة تلقائية في الخلفية كل 10 ثوانٍ (Real-time sync)
-    setInterval(syncFromGithub, 10000);
-    // تحديث واجهة المصادقة عند تحميل الصفحة
+setInterval(syncFromGithub, 10000);    // تحديث واجهة المصادقة عند تحميل الصفحة
     updateAuthUI();
 });
