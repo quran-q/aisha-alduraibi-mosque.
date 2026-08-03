@@ -12,7 +12,7 @@
 <body>
     <!-- ===== Live Clock Bar ===== -->
     <div class="live-clock-bar">
-        <div id="liveClock" class="live-clock">🕌 —</div>
+        <div id="liveClock" class="live-clock">—</div>
     </div>
 
     <!-- ===== Header ===== -->
@@ -131,7 +131,7 @@
 
                         <!-- Juz Tracker -->
                         <div class="juz-tracker-section">
-                            <h3 class="section-heading">📊 مؤشر تقدم حفظ القرآن الكريم</h3>
+                            <h3 class="section-heading">مؤشر تقدم حفظ القرآن الكريم</h3>
                             <div class="progress-summary">
                                 <div class="progress-info">
                                     <span id="completedJuzCount">0 / 30 جزء</span>
@@ -146,7 +146,7 @@
 
                         <!-- Badges -->
                         <div class="badges-section">
-                            <h3 class="section-heading">🏅 أوسمة التميز</h3>
+                            <h3 class="section-heading">أوسمة التميز</h3>
                             <div class="badges-container" id="badgesContainer"></div>
                         </div>
 
@@ -155,36 +155,43 @@
                             <h3 class="section-heading">تفاصيل آخر متابعة</h3>
                             <div class="details-grid">
                                 <div class="detail-box">
-                                    <span class="detail-icon">✅</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">حالة الحضور</span>
                                     <span class="detail-value" id="reportAttendance">—</span>
                                 </div>
                                 <div class="detail-box">
-                                    <span class="detail-icon">📖</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">الحفظ الجديد</span>
                                     <span class="detail-value" id="reportMemorization">—</span>
                                 </div>
                                 <div class="detail-box">
-                                    <span class="detail-icon">🔁</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">المراجعة</span>
                                     <span class="detail-value" id="reportReview">—</span>
                                 </div>
                                 <div class="detail-box">
-                                    <span class="detail-icon">📍</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">خط الوقف الحالي</span>
                                     <span class="detail-value" id="reportStopPoint">—</span>
                                 </div>
                                 <div class="detail-box">
-                                    <span class="detail-icon">⭐</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">التقييم</span>
                                     <span class="detail-value" id="reportEvaluation">—</span>
                                 </div>
                                 <div class="detail-box">
-                                    <span class="detail-icon">📝</span>
+                                    <span class="detail-icon">•</span>
                                     <span class="detail-label">ملاحظات المعلم</span>
                                     <span class="detail-value" id="reportNotes">—</span>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- AI Evaluation Comment -->
+                        <div class="report-details no-print" id="aiEvalBox" style="display:none;">
+                            <h3 class="section-heading">🧠 تعليق تقييم مقترح (AI)</h3>
+                            <p id="aiEvalCommentText" style="background:var(--off-white);border-radius:var(--radius-sm);padding:1rem;line-height:1.9;color:var(--gray-dark);"></p>
+                            <button class="btn btn-outline" style="margin-top:0.6rem;" onclick="copyAIEvalComment()">نسخ التعليق</button>
                         </div>
 
                         <!-- Print Seal (visible only in print) -->
@@ -199,7 +206,7 @@
 
                     <!-- History Table -->
                     <div class="card history-card">
-                        <h3 class="card-title">📜 السجل التاريخي للمتابعات</h3>
+                        <h3 class="card-title">السجل التاريخي للمتابعات</h3>
                         <div class="table-wrap">
                             <table class="history-table" id="historyTable">
                                 <thead>
@@ -263,16 +270,59 @@
                     </div>
                 </div>
 
-                <!-- Teacher Filter -->
+                <!-- Filters (Teacher & Track) -->
                 <div class="card teacher-filter-card">
-                    <h2 class="card-title">اختيار المعلم / الحلقة</h2>
-                    <p class="card-desc">اختر المعلم لعرض طلابه فقط</p>
-                    <div class="form-group">
-                        <label for="teacherFilter">المعلم</label>
-                        <select id="teacherFilter" onchange="filterByTeacher()">
-                            <option value="">— كل المعلمين —</option>
-                        </select>
+                    <h2 class="card-title">تصفية الطلاب</h2>
+                    <p class="card-desc">اختر المعلم والمسار لعرض الطلاب المحددين</p>
+                    <div class="form-grid">
+                        <div class="form-group" id="teacherFilterGroup">
+                            <label for="teacherFilter">المعلم</label>
+                            <select id="teacherFilter" onchange="filterByTeacher()">
+                                <option value="">— كل المعلمين —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="trackFilter">مسار الطالب</label>
+                            <select id="trackFilter" onchange="filterByTrack()">
+                                <option value="all">— كل المسارات —</option>
+                                <option value="أساسي">أساسي</option>
+                                <option value="صيفي">صيفي مكثف</option>
+                            </select>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Daily AI Summary -->
+                <div class="card ai-insights-card">
+                    <h2 class="card-title">📋 الملخص اليومي الذكي</h2>
+                    <p class="card-desc">نظرة سريعة على حالة الفصل عند بداية اليوم.</p>
+                    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;">
+                        <div style="font-weight:800;font-size:1.6rem;color:var(--navy-dark);" id="classHealthScore">—</div>
+                        <div style="flex:1;min-width:150px;height:10px;background:var(--gray-light);border-radius:10px;overflow:hidden;"><div id="classHealthBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--green));transition:var(--transition);"></div></div>
+                        <span style="font-size:0.85rem;color:var(--gray);">مؤشر صحة الفصل</span>
+                    </div>
+                    <div id="dailySummaryBody"></div>
+                </div>
+
+                <!-- AI Insights -->
+                <div class="card ai-insights-card">
+                    <h2 class="card-title">🧠 التحليل الذكي وتوصيات المعلم</h2>
+                    <p class="card-desc">تحليل تلقائي لكل طالب بناءً على الحضور والتقييمات وكمية الحفظ والمراجعة، مع توصية وشرح مختصر.</p>
+                    <div class="ai-summary-bar" id="aiInsightsSummary"></div>
+                    <div class="ai-insights-grid" id="aiInsightsBody"></div>
+                </div>
+
+                <!-- Early Risk Detection -->
+                <div class="card ai-insights-card">
+                    <h2 class="card-title">⚠️ الإنذار المبكر — طلاب معرّضون للخطر</h2>
+                    <p class="card-desc">توقعات تلقائية لطلاب قد يتوقفون عن الحفظ أو يتغيّبون بكثرة أو يتأخرون عن المسار.</p>
+                    <div class="ai-insights-grid" id="riskCardsBody"></div>
+                </div>
+
+                <!-- Smart Alerts -->
+                <div class="card">
+                    <h2 class="card-title">🔔 تنبيهات ذكية</h2>
+                    <div id="teacherAlertsBody"></div>
                 </div>
 
                 <!-- Record Tracking Form -->
@@ -360,7 +410,7 @@
                             </div>
                         </div>
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-gold">💾 حفظ المتابعة</button>
+                            <button type="submit" class="btn btn-gold">حفظ المتابعة</button>
                             <button type="reset" class="btn btn-outline">إعادة تعيين</button>
                         </div>
                     </form>
@@ -384,9 +434,13 @@
                                 <label for="newStudentTeacher">المعلم التابع له</label>
                                 <select id="newStudentTeacher" required>
                                     <option value="">— اختر المعلم —</option>
-                                    <option value="t1">الشيخ أحمد</option>
-                                    <option value="t2">الشيخ خالد</option>
-                                    <option value="t3">الشيخ عبدالله</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="newStudentTrack">مسار الطالب</label>
+                                <select id="newStudentTrack" required>
+                                    <option value="أساسي">مسار أساسي (طوال العام)</option>
+                                    <option value="صيفي">مسار صيفي مكثف</option>
                                 </select>
                             </div>
                         </div>
@@ -483,16 +537,54 @@
                 <div class="card">
                     <h2 class="card-title">إجراءات سريعة</h2>
                     <div class="smart-actions-grid">
-                        <button class="btn btn-gold" onclick="copyRegistrationLink()">🔗 نسخ رابط تسجيل طالب جديد</button>
+                        <button class="btn btn-gold" onclick="copyRegistrationLink()">نسخ رابط تسجيل طالب جديد</button>
                         <button class="btn btn-gold" onclick="showAccountsModal()">إدارة الحسابات</button>
                         <button class="btn btn-outline" onclick="exportData()">تصدير البيانات</button>
                         <button class="btn btn-outline" onclick="document.getElementById('adminAddTeacherCard').scrollIntoView({behavior:'smooth'})">إضافة حلقة جديدة</button>
                     </div>
                 </div>
 
+                <!-- AI Supervisor Analytics -->
+                <div class="card ai-insights-card">
+                    <h2 class="card-title">🧠 التحليلات الذكية للمشرف</h2>
+                    <p class="card-desc">تحليل أداء الحلقات والمعلمين تلقائياً، وتحديد الطلاب المعرّضين للخطر عبر كل الحلقات.</p>
+                    <div style="margin:0.8rem 0 1.2rem;font-size:0.95rem;"><strong>أفضل حلقة حالياً:</strong> <span id="bestCircleName">—</span></div>
+
+                    <h3 style="font-size:1rem;color:var(--navy-dark);margin-bottom:0.6rem;">مقارنة أداء الحلقات</h3>
+                    <div id="circleComparisonBody" style="margin-bottom:1.5rem;"></div>
+
+                    <h3 style="font-size:1rem;color:var(--navy-dark);margin-bottom:0.6rem;">ترتيب المعلمين وتقييم الأداء</h3>
+                    <div class="table-wrap" style="margin-bottom:1.5rem;">
+                        <table class="history-table">
+                            <thead><tr><th>#</th><th>المعلم</th><th>الطلاب</th><th>مؤشر الأداء</th><th>ممتازون</th><th>في خطر</th><th>توصية ذكية</th></tr></thead>
+                            <tbody id="teacherRankingBody"></tbody>
+                        </table>
+                    </div>
+
+                    <h3 style="font-size:1rem;color:var(--navy-dark);margin-bottom:0.6rem;">طلاب معرّضون للخطر (كل الحلقات)</h3>
+                    <div class="ai-insights-grid" id="adminRiskBody"></div>
+                </div>
+
+                <!-- Smart Alerts (Admin) -->
+                <div class="card">
+                    <h2 class="card-title">🔔 التنبيهات الذكية</h2>
+                    <div id="adminAlertsBody"></div>
+                </div>
+
+                <!-- Reports -->
+                <div class="card">
+                    <h2 class="card-title">📊 التقارير الأسبوعية والشهرية</h2>
+                    <p class="card-desc">تقرير شامل بالإحصائيات وأفضل الطلاب وترتيب الحلقات، جاهز للطباعة أو الحفظ كملف PDF.</p>
+                    <div class="smart-actions-grid">
+                        <button class="btn btn-gold" onclick="generateReport('weekly')">تقرير أسبوعي</button>
+                        <button class="btn btn-gold" onclick="generateReport('monthly')">تقرير شهري</button>
+                    </div>
+                    <p style="font-size:0.8rem;color:var(--gray);margin-top:0.8rem;">عند فتح نافذة الطباعة، اختر "حفظ كملف PDF" (Save as PDF) كوجهة الطباعة لتنزيله كـ PDF.</p>
+                </div>
+
                 <!-- New Registration Requests -->
                 <div class="card" id="pendingRegsCard">
-                    <h2 class="card-title">📥 طلبات التسجيل الجديدة</h2>
+                    <h2 class="card-title">طلبات التسجيل الجديدة</h2>
                     <p class="card-desc">طلبات وصلت عبر رابط التسجيل العام — بانتظار القبول أو الرفض</p>
                     <div class="table-wrap">
                         <table class="history-table" id="pendingRegsTable">
@@ -560,14 +652,24 @@
                 <!-- Manage All Students -->
                 <div class="card">
                     <h2 class="card-title">إدارة جميع الطلاب</h2>
-                    <p class="card-desc">عرض جميع الطلاب مع إمكانية النقل بين الحلقات</p>
+                    <p class="card-desc">عرض جميع الطلاب مع إمكانية النقل، تعديل المسار، والأرشفة</p>
                     
-                    <!-- Filter -->
-                    <div class="form-group" style="max-width:400px;margin-bottom:1rem;">
-                        <label for="adminStudentFilter">تصفية بالحلقة</label>
-                        <select id="adminStudentFilter" onchange="renderAdminStudentsTable()">
-                            <option value="">— كل الحلقات —</option>
-                        </select>
+                    <!-- Filters -->
+                    <div class="form-grid" style="margin-bottom:1rem;">
+                        <div class="form-group">
+                            <label for="adminStudentFilter">تصفية بالحلقة</label>
+                            <select id="adminStudentFilter" onchange="renderAdminStudentsTable()">
+                                <option value="">— كل الحلقات —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="adminTrackFilter">تصفية بالمسار</label>
+                            <select id="adminTrackFilter" onchange="document.getElementById('trackFilter').value = this.value; filterByTrack(); renderAdminStudentsTable();">
+                                <option value="all">— كل المسارات —</option>
+                                <option value="أساسي">أساسي</option>
+                                <option value="صيفي">صيفي مكثف</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="table-wrap">
@@ -578,8 +680,7 @@
                                     <th>اسم الطالب</th>
                                     <th>رقم الهوية</th>
                                     <th>الحلقة الحالية</th>
-                                    <th>الأجزاء</th>
-                                    <th>المتابعات</th>
+                                    <th>تغيير المسار</th>
                                     <th>نقل إلى</th>
                                     <th>إجراء</th>
                                 </tr>
@@ -588,16 +689,34 @@
                         </table>
                     </div>
                 </div>
-            </div>
-        </section>
-    </main>
+
+                <!-- Archived Students (الأرشيف) -->
+                <div class="card" style="border-top: 4px solid var(--gray);">
+                    <h2 class="card-title">أرشيف الطلاب</h2>
+                    <p class="card-desc">الطلاب الذين تم إنهاء دورتهم (مثل طلاب الصيفي). لا يظهرون للمعلمين.</p>
+                    <div class="table-wrap">
+                        <table class="history-table" id="archivedStudentsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم الطالب</th>
+                                    <th>رقم الهوية</th>
+                                    <th>المسار السابق</th>
+                                    <th>عدد المتابعات</th>
+                                    <th>إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="archivedStudentsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
 
     <!-- ===== Footer ===== -->
     <footer class="site-footer">
         <p>© نظام جامع عائشة بنت عبدالعزيز الدريبي لإدارة ومتابعة الطلاب</p>
     </footer>
 
-    <!-- Accept Registration Modal (اختيار الحلقة عند قبول الطالب) -->
+    <!-- Accept Registration Modal -->
     <div id="acceptRegModal" class="modal-overlay" onclick="if(event.target===this)closeAcceptRegModal()">
         <div class="modal-content" style="max-width:480px;">
             <div class="modal-header">
@@ -630,7 +749,7 @@
         </div>
     </div>
 
-    <!-- Login Modal (تسجيل الدخول الذكي) -->
+    <!-- Login Modal -->
     <div id="loginModal" class="modal-overlay" onclick="if(event.target===this)closeLoginModal()">
         <div class="modal-content" style="max-width:420px;">
             <div class="modal-header">
@@ -653,18 +772,14 @@
                     <div class="login-options">
                         <label class="remember-me">
                             <input type="checkbox" id="rememberMe">
-                            <span>🔒 تذكرني (حفظ البيانات على هذا الجهاز)</span>
+                            <span>تذكرني (حفظ البيانات على هذا الجهاز)</span>
                         </label>
-                        <a href="javascript:void(0)" onclick="showForgotPasswordModal()" class="forgot-link">🔑 نسيت كلمة المرور؟</a>
+                        <a href="javascript:void(0)" onclick="showForgotPasswordModal()" class="forgot-link">نسيت كلمة المرور؟</a>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-gold" style="width:100%;">دخول</button>
                     </div>
                 </form>
-                <div class="login-hint">
-                    <p>💡 <strong>المشرف العام:</strong> admin / Admin@2024</p>
-                    <p>💡 <strong>المعلمين:</strong> ahmed / Ahmed@123 — khaled / Khaled@123 — abdullah / Abdullah@123</p>
-                </div>
             </div>
         </div>
     </div>
@@ -693,7 +808,7 @@
         </div>
     </div>
 
-    <!-- Accounts Management Modal (للمشرف العام) -->
+    <!-- Accounts Management Modal -->
     <div id="accountsModal" class="modal-overlay" onclick="if(event.target===this)closeAccountsModal()">
         <div class="modal-content" style="max-width:800px;">
             <div class="modal-header">
@@ -729,9 +844,6 @@
                                 <label for="newAccountTeacherId">الحلقة / المعلم</label>
                                 <select id="newAccountTeacherId">
                                     <option value="">— اختر الحلقة —</option>
-                                    <option value="t1">حلقة الشيخ أحمد</option>
-                                    <option value="t2">حلقة الشيخ خالد</option>
-                                    <option value="t3">حلقة الشيخ عبدالله</option>
                                 </select>
                             </div>
                         </div>
@@ -765,6 +877,8 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-    <script src="app.js?v=13"></script>
-</body>
+    <!-- Report Print Area (hidden on screen, shown only when printing weekly/monthly reports) -->
+    <div id="reportPrintArea" class="report-print-area"></div>
+
+<script src="app.js?v=999"></script></body>
 </html>

@@ -677,6 +677,55 @@ body {
 @media (min-width: 769px) and (max-width: 1024px) { .details-grid { grid-template-columns: repeat(2, 1fr); } .juz-grid { grid-template-columns: repeat(10, 1fr); } }
 
 /* ===== Print Styles ===== */
+/* ===== AI Insights (التحليل الذكي) ===== */
+.ai-insights-card { border-top: 4px solid var(--navy-dark); }
+.ai-summary-bar { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.9rem 0 1.3rem; }
+.ai-summary-chip { padding: 0.35rem 0.9rem; border-radius: 50px; font-size: 0.8rem; font-weight: 700; color: var(--white); }
+.ai-insights-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.ai-insight-card { border: 1px solid var(--gray-light); border-radius: var(--radius-sm); padding: 1rem; border-right: 5px solid var(--gray); background: var(--off-white); }
+.ai-insight-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.ai-insight-name { font-weight: 800; color: var(--navy-dark); }
+.ai-insight-badge { font-size: 0.72rem; font-weight: 800; padding: 0.25rem 0.7rem; border-radius: 50px; color: var(--white); white-space: nowrap; }
+.ai-insight-text { font-size: 0.85rem; color: var(--gray-dark); line-height: 1.7; margin: 0; }
+.ai-excellent { background: var(--green); }
+.ai-warning { background: var(--orange); }
+.ai-critical { background: var(--red); }
+.ai-info { background: var(--navy-soft); }
+.ai-neutral { background: var(--gray); }
+.ai-insight-card.ai-excellent { border-right-color: var(--green); }
+.ai-insight-card.ai-warning { border-right-color: var(--orange); }
+.ai-insight-card.ai-critical { border-right-color: var(--red); }
+.ai-insight-card.ai-info { border-right-color: var(--navy-soft); }
+.ai-insight-card.ai-neutral { border-right-color: var(--gray); }
+
+/* ===== Daily Summary, Risk Cards, Alerts, Circle Comparison ===== */
+.daily-summary-block { margin-bottom: 0.9rem; }
+.daily-summary-names { font-size: 0.85rem; color: var(--gray-dark); margin: 0.35rem 0 0; line-height: 1.7; }
+.risk-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; }
+.risk-chip { font-size: 0.72rem; background: rgba(220, 38, 38, 0.1); color: var(--red); border: 1px solid rgba(220, 38, 38, 0.3); padding: 0.2rem 0.6rem; border-radius: 50px; }
+.alert-item { padding: 0.7rem 1rem; border-radius: var(--radius-sm); background: var(--off-white); border-right: 4px solid var(--gray); margin-bottom: 0.6rem; font-size: 0.88rem; color: var(--gray-dark); }
+.alert-item.alert-attendance { border-right-color: var(--orange); }
+.alert-item.alert-no-review { border-right-color: var(--red); }
+.alert-item.alert-surah { border-right-color: var(--navy-soft); }
+.alert-item.alert-pending { border-right-color: var(--gold); }
+.circle-compare-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.7rem; }
+.circle-compare-name { min-width: 110px; font-size: 0.85rem; font-weight: 700; color: var(--navy-dark); }
+.circle-compare-bar-wrap { flex: 1; height: 10px; background: var(--gray-light); border-radius: 10px; overflow: hidden; }
+.circle-compare-bar { height: 100%; background: linear-gradient(90deg, var(--gold), var(--green)); }
+.circle-compare-value { font-size: 0.85rem; font-weight: 700; color: var(--gray-dark); min-width: 40px; text-align: left; }
+
+/* ===== Report Print Area (Feature 8) ===== */
+.report-print-area { display: none; }
+.report-print-header h1 { font-size: 1.3rem; color: var(--navy-dark); margin-bottom: 0.3rem; }
+.report-print-header p { font-size: 0.85rem; color: var(--gray); margin-bottom: 1.2rem; }
+.report-print-stats { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.report-print-stats div { flex: 1; min-width: 120px; text-align: center; border: 1px solid var(--gray-light); border-radius: var(--radius-sm); padding: 0.8rem; }
+.report-print-stats strong { display: block; font-size: 1.4rem; color: var(--navy-dark); }
+.report-print-stats span { font-size: 0.8rem; color: var(--gray); }
+.report-print-table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+.report-print-table th, .report-print-table td { border: 1px solid var(--gray-light); padding: 0.5rem 0.7rem; text-align: right; font-size: 0.85rem; }
+.report-print-table th { background: var(--navy-dark); color: var(--white); }
+
 @media print {
     body { background: var(--white); }
     .live-clock-bar, .site-header, .tabs-nav, .site-footer, .search-card, .empty-state, .no-print, .toast, #teacher-panel, #admin-panel, .modal-overlay { display: none !important; }
@@ -695,5 +744,7 @@ body {
     .report-divider, .report-student-info, .detail-box, .history-table thead, .badge, .progress-bar, .badge-medal { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     .history-table { font-size: 0.85rem; }
     .history-table th { background: #0a1f44 !important; color: #fff !important; }
+    body.printing-report #student-portal, body.printing-report #reportSection, body.printing-report .search-card { display: none !important; }
+    body.printing-report .report-print-area { display: block !important; }
     @page { margin: 1.5cm; }
 }
